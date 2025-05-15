@@ -1,0 +1,13 @@
+year <- sub("-.*", "", meta$Date)
+note <- sprintf("R package version %s", meta$Version)
+
+bibentry(bibtype = "article",
+         title = "Multisite, multivariate weather generation based on generalised linear models",
+         author = person("Richard E.", "Chandler"),
+         journal = "Environmental Modelling and Software", 
+         journal = "Environmental Modelling & Software",
+         volume = "134",
+         pages = "104867",
+         year = "2020",
+         doi = "https://doi.org/10.1016/j.envsoft.2020.104867",
+         url = "http://www.homepages.ucl.ac.uk/~ucakarc/work/glimclim.html")

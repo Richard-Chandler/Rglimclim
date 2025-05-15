@@ -1,0 +1,34 @@
+#
+# Plots simulated and observed barcharts of numbers of wet sites.
+# Run makepwet first, to generate files pwet.obs and pwet.sim -
+# and add header rows
+#
+pwet.obs <- read.table("pwet.obs",header=TRUE)
+pwet.sim <- read.table("pwet.sim",header=TRUE)
+
+sim.min <- aggregate(pwet.sim,by=list(pwet.sim$Month),
+                     FUN=quantile,probs=0.05)[,-(1:3)]
+sim.max <- aggregate(pwet.sim,by=list(pwet.sim$Month),
+                     FUN=quantile,probs=0.95)[,-(1:3)]
+obs <- aggregate(pwet.obs,by=list(pwet.obs$Month),FUN=median)[,-(1:3)]
+
+colscl <- rainbow(3)
+colscl <- grey(c(1,0.5,0))
+
+par(mfrow=c(2,1))
+for (month in c(1,7)) {
+  z <- as.matrix(rbind(sim.min[month,],obs[month,],sim.max[month,]))
+  barplot(z,names=0:10,beside=TRUE,col=colscl,ylim=c(0,0.6),
+          xlab="Number of wet sites",ylab="Proportion of days",
+#          legend.text=c("Simulated P5","Observed","Simulated P95"),
+          legend.text=FALSE,
+          cex.names=0.9)
+  title(month.name[month])
+  legend(25,0.5,c("Simulated P5","Observed","Simulated P95"),
+	fill=colscl)
+}
+dev.copy(postscript,"pwet.ps",paper="a4",horizontal=TRUE)
+dev.off()
+dev.copy(pdf,"pwet.pdf",width=11,height=8)
+dev.off()
+

@@ -1,0 +1,29 @@
+# NAMESPACE for Rglimclim: took R-generated default and added
+# the next line. 
+useDynLib(Rglimclim)
+#
+# Next lines suggested by R CMD check with R v 3.4.2
+#
+importFrom("grDevices", "col2rgb", "extendrange", "gray", "grey", "rainbow", "rgb")
+importFrom("graphics", "abline", "axis", "box", "lines", "par", "plot",
+           "points", "polygon", "text", "title")
+importFrom("stats", "pchisq", "pnorm", "ppoints", "pt", "qgamma",
+           "qnorm", "quantile", "runif")
+importFrom("utils", "capture.output", "read.fwf", "read.table", "write.table")
+
+# Export all names
+exportPattern(".")
+
+# Define S3 methods
+S3method(anova, GLC.modeldef)
+S3method(logLik, GLC.modeldef)
+S3method(plot, GLC.modeldef)
+S3method(print, GLC.modeldef)
+S3method(summary, GLC.modeldef)
+S3method(print, GLCsim)
+S3method(summary, GLCsim)
+S3method(print,siteinfo)
+S3method(print, anova.GLC.modeldef)
+S3method(plot, summary.GLCsim)
+S3method(print, summary.GLCsim)
+
