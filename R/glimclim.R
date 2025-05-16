@@ -5279,7 +5279,7 @@ print.summary.GLCsim <- function(x,...) {
 #       Now create the structure of the result and write a summary of this
 #       structure to screen
 #
- title.text <- paste("Simulation '",attr(x,which="GLCsim.object"),
+ title.text <- paste("Simulation '",format(attr(x,which="GLCsim.object")),
                      "' - summaries calculated:",sep="")
  cat(paste("\n",paste(rep("#",nchar(title.text)),collapse=""),"\n",
            title.text,"\n",
