@@ -373,13 +373,15 @@ OpenFile <- function(filename,scratch=FALSE,Nfields,direct=TRUE,
   acc.code <- ifelse(direct,1,2) # should be 1 for direct access, 2 for sequential
   form.code <- ifelse(formatted,1,2) # 1 for formatted, 2 for unformatted
   z <- .Fortran("SCROPN",ACODE=as.integer(acc.code),FCODE=as.integer(form.code),
-                NFIELDS=as.integer(Nfields),FILNO=as.integer(0))$FILNO
+                NFIELDS=as.integer(Nfields),FILNO=as.integer(0),
+                PACKAGE="Rglimclim")$FILNO
  } else {
   LenFlNm <- as.integer(nchar(filename))
   TempFile <- OpenTempFile()
   cat(paste(filename,"\n",sep=""), file=TempFile$Name, append=TRUE)
   z <- .Fortran("RGLCFileConnect",TmpFlNo=as.integer(TempFile$Number),
-                VarLen=LenFlNm,UnitNo=as.integer(0),Ifail=as.integer(0))
+                VarLen=LenFlNm,UnitNo=as.integer(0),Ifail=as.integer(0),
+                PACKAGE="Rglimclim")
   unlink(TempFile$Name)
   if (z$Ifail == 0) z <- z$UnitNo else z <- -1
  }
@@ -1297,6 +1299,9 @@ make.siteinfo <- function(site.data,coord.cols=NULL,site.codes=NULL,
  if (!all(which.coords %in% which.attr)) {
   stop(paste("coord.cols contains columns that are not specified",
              "in attr.cols"))
+ }
+ if (any(unlist(lapply(site.data[,which.attr], FUN=class))=="character")) {
+   stop("site.data contains non-numeric columns other than site code and name")
  }
  sitinf <- as.matrix(site.data[,which.attr])
  mode(sitinf) <- "numeric" # In case there are integer columns which screw up the Fortran
@@ -4548,7 +4553,8 @@ GLCsim <- function(modeldefs,siteinfo,start,end,nsims,impute.until=end,
 #       before calling this routine.
 # 
  Fortran.seed <- as.integer(floor(runif(1)*(2^31-1)))
- Fortran.seed <- .Fortran("zbqlini",seed=Fortran.seed)$seed
+ Fortran.seed <- .Fortran("zbqlini",seed=Fortran.seed,
+                          PACKAGE="Rglimclim")$seed
 #
 #       Here are the simulations: one set of output files per simulation.
 #       Before starting, read any values to be conditioned upon in 
@@ -4577,7 +4583,7 @@ GLCsim <- function(modeldefs,siteinfo,start,end,nsims,impute.until=end,
                   NSITES=as.integer(nsites),NVARS=as.integer(nvars),
                   TmpFlNo=TempFile$Number,DateRange=DateLims,
                   ImputeTill=as.integer(impute.until),MaxLag=max.lag,
-                  IFAIL=as.integer(0))
+                  IFAIL=as.integer(0), PACKAGE="Rglimclim")
  if (tmp$IFAIL != 0) {
   stop("Error while reading data - see message above for details")
  }
@@ -5201,7 +5207,8 @@ summary.GLCsim <- function(object,which.variables,which.sites,which.regions,
                           TmpFlNo=TempFile$Number,
                           MoStats=current.stats,
                           Ifail=as.integer(0)),
-                          finally=CloseFiles(simfilno))
+                          finally=CloseFiles(simfilno),
+                          PACKAGE="Rglimclim")
    CloseFiles(simfilno)
    if (!stat.table$Ifail == 0) stop(err.msg(stat.table$Ifail))
    stat.table$MoStats[abs(stat.table$MoStats) > 9.999e99] <- NA
