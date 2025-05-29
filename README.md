@@ -12,7 +12,7 @@ The underpinning methodology is summarised in
 
 The package requires [R version 4.4 or later](https://www.r-project.org/), as well as:
 
-* The `devtools` package in R. If you don't have this already, it can be installed via the Tools menu in [RStudio](https://posit.co/download/rstudio-desktop/) or via `install.packages("devtools", lib=<whatever>)` from an R console).
+* The `devtools` package in R. If you don't have this already, it can be installed via the Tools menu in [RStudio](https://posit.co/download/rstudio-desktop/) or via `install.packages("devtools", lib=<whatever>)` from an R console.
 * Tools for compiling packages from source, notably a `Fortran` compiler. `Windows` users will need the version of [Rtools](https://cran.r-project.org/bin/windows/Rtools/) appropriate to their version of `R`; `Mac` users may also need to ensure that the relevant [compilation tools](https://mac.r-project.org/tools/) are available, depending on their setup. `Linux` users will presumably know what they're doing. 
 
 ## Installation
