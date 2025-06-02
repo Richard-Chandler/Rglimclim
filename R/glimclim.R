@@ -339,7 +339,7 @@ OpenTempFile <- function() {
  TmpFileAllocated <- FALSE
  TmpFlNo <- 1000
  while(!TmpFileAllocated) {
-  TmpFlName <- paste("RGLCtmp_",TmpFlNo,sep="")
+  TmpFlName <- paste("RGLCtmp_", TmpFlNo, ".txt", sep="")
   if (!file.exists(TmpFlName)) {
    cat("### This file can safely be deleted unless Rglimclim is running ###\n", 
        file=TmpFlName)
@@ -452,7 +452,7 @@ GLCfit <- function(model.def,dispersion.def,response.check=1,max.iter=Inf,
 #       Close any open Fortran file handles in case something went wrong
 #       previously
 #
- CloseFiles(10:1000)
+  CloseFiles(10:1000)
 #
 #       Check site information
 #
@@ -478,26 +478,32 @@ GLCfit <- function(model.def,dispersion.def,response.check=1,max.iter=Inf,
 #       model.def, or by explicitly supplying a dispersion.def argument); 
 #       then cross-check the mean and dispersion components and ensure
 #       that the components of model.def contain everything necessary
-#       for both mean and dispersion models. 
+#       for both mean and dispersion models. Also check 
+#       dimensioning. 
 #
  if (model.type == "normal-heteroscedastic") {
-  if ( !inherits(model.def$dispersion,"GLC.modeldef") & 
-       (missing(dispersion.def)) ) {
-   stop("No dispersion structure defined in heteroscedastic normal model")
-  } 
-  if ( inherits(model.def$dispersion,"GLC.modeldef") & 
-       !missing(dispersion.def) ) {
-   stop(paste("Dispersion structure defined twice in heteroscedastic normal ",
-              "model - \nonce in ",substitute(dispersion.def)," and once in ",
-              substitute(model.def),"$dispersion.",sep=""))
-  } 
-  if (!missing(dispersion.def)) {
-   if (!inherits(dispersion.def,"GLC.modeldef")) {
-    stop("dispersion.def is not an object of class GLC.modeldef")
+   if ( !inherits(model.def$dispersion,"GLC.modeldef") & 
+        (missing(dispersion.def)) ) {
+     stop("No dispersion structure defined in heteroscedastic normal model")
    }
-   model.def$dispersion <- dispersion.def
-  }
-  model.def <- CheckJointModel(model.def)
+   if ( inherits(model.def$dispersion,"GLC.modeldef") & 
+        !missing(dispersion.def) ) {
+     stop(paste("Dispersion structure defined twice in heteroscedastic normal ",
+                "model - \nonce in ",substitute(dispersion.def)," and once in ",
+                substitute(model.def),"$dispersion.",sep=""))
+   }
+   if (!missing(dispersion.def)) {
+     if (!inherits(dispersion.def,"GLC.modeldef")) {
+       stop("dispersion.def is not an object of class GLC.modeldef")
+     }
+     if (dispersion.def$max.pars != model.def$max.pars) {
+       stop(paste("Mean and dispersion models have incompatible storage:",
+                  "use link.to argument in read.modeldef() to avoid this error", 
+                  sep="\n"))
+     }
+     model.def$dispersion <- dispersion.def
+     }
+   model.def <- CheckJointModel(model.def)
  }
 #
 #       Now check files and allocate Fortran unit numbers. CheckFiles 
@@ -586,6 +592,7 @@ GLCfit <- function(model.def,dispersion.def,response.check=1,max.iter=Inf,
           OpenFile(scratch=TRUE,Nfields=10,direct=TRUE,formatted=FALSE)
   if (UnitNos.disp[91] < 0) CloseFiles(UnitNos.disp[-91],error=TRUE)
   OpenUnits <- unique(c(UnitNos,UnitNos.disp))
+
   z <- tryCatch(JointFit.internal(model.type,max.iter,response.check,nsites,
                        model.def,nattr,sitinf, siteinfo$Site.codes, 
                        phi,year.range,diagnostics,UnitNos,UnitNos.disp,
@@ -684,6 +691,7 @@ GLCfit.internal <- function(model,max.iter,response.check,nsites,
 #                       which covariate information is available might
 #                       differ between the mean and dispersion models)
 ##############################################################################
+  
  izero <- as.integer(0)
  nyears <- as.integer(diff(year.range)+1)
  model.code <- model.num(model)
@@ -808,6 +816,7 @@ JointFit.internal <- function(model.type,max.iter,response.check,nsites,
 #       here (they're just dummy values at this stage)
 #
  izero <- as.integer(0)
+
  disp.def <- GLCfit.internal(disp.def$model.type,max.iter=0,response.check=-1,
                       nsites,disp.def,nattr,sitinf, SiteCodes, 
                       phi,year.range,diagnostics=0,UnitNos.disp,
@@ -1465,10 +1474,10 @@ define.regions <- function(names,codes=NULL) {
 ##############################################################################
 ##############################################################################
 read.modeldef <- 
- function(model.file,nhead=46,model.type,which.part="mean",siteinfo,
-          var.names,which.response=1,
+ function(model.file,nhead=46, model.type, which.part="mean", siteinfo=NULL,
+          var.names, which.response=1, link.to=NULL,
           external.files=c("yr_preds.dat","mn_preds.dat","dy_preds.dat"),
-          sim=FALSE,oldGlimClim.warning=TRUE) {
+          sim=FALSE, oldGlimClim.warning=FALSE) {
 #
 #       To read a model definition from file. Arguments:
 #
@@ -1491,6 +1500,15 @@ read.modeldef <-
 #       var.names       Vector of variable names (used to construct 
 #                       labels, in multivariate models in particular) 
 #       which.response  Index number of response variable in data file 
+#       link.to			    For normal-heteroscedastic models, this can 
+#				                optionally be used to specify the name of
+#						            an object defining the other half of the model
+#						            definition (e.g. if you're defining a model for
+#                       the variance, this will be used to indicate
+#                       the object containing the mean model). In this
+#						            case, site information etc. will be copied over
+#                       from the other model definition so as to ensure
+#						            consistency between them.
 #       external.files  Names of files containing "external" covariate
 #                       information (not used unless external 
 #                       covariates are explicitly specified in 
@@ -1508,10 +1526,18 @@ read.modeldef <-
 #                       the "linear predictor". Defaults to FALSE.
 #
  if (!file.exists(model.file)) stop(paste(model.file,"not found"))
- if (!inherits(siteinfo,"siteinfo")) {
-  stop("Wrongly structured siteinfo argument - use make.siteinfo()")
- }
+
  if (missing(model.type)) stop("model.type must be supplied")
+
+ if (!is.null(link.to)) {
+   if (!is.null(siteinfo)) warning("Ignoring supplied siteinfo and using information from link.to")
+   siteinfo <- link.to$siteinfo
+ } else {
+   if (is.null(siteinfo)) stop("Either siteinfo or link.to must be specified")
+   if (!inherits(siteinfo,"siteinfo")) {
+     stop("Wrongly structured siteinfo argument - use make.siteinfo()")
+   }
+ }
 #
 #       Minimum number of codes required for each component type
 #
@@ -1547,7 +1573,16 @@ read.modeldef <-
 #       than the number of lines in the definition file, that 
 #       gives us an upper bound.
 #
+ 
  max.pars <- max(length(file.input)-1+siteinfo$Nattr,1)
+ if (!is.null(link.to) & model.type=="normal-heteroscedastic") {
+   if (link.to$max.pars < max.pars) {
+     stop(paste("Model defined in link.to doesn't have enough storage:",
+     "when linking two models, define the more complex one first.", 
+     sep="\n"))
+   }
+   max.pars <- max(max.pars, link.to$max.pars)
+ }
  beta <- rep(NA,max.pars+1)
  global.codes <- rep(-1,max.pars)
  fourier.idx <- legendre.idx <- rep(0,max.pars)
@@ -1627,7 +1662,7 @@ read.modeldef <-
    covcode[N] <- code[1]
 #
 #	For site effects, check that the requested attribute has been 
-#       defined. Then record if any nonlinear transformations
+#   defined. Then record if any nonlinear transformations
 #	have been defined, and remember what site attributes they
 #	correspond to. Also, allow estimation of nonlinear parameters
 #	here.
@@ -2024,6 +2059,10 @@ read.modeldef <-
 #
 #       And create arrays of labels for use when printing output
 #
+ if (!is.null(link.to)) {
+   if (!missing(var.names)) warning("Ignoring supplied var.names and using those in link.to")
+   var.names <- link.to$var.names
+ }
  if (missing(var.names)) {
   var.names <- paste("Y",1:nvars,sep="")
   if (length(var.names) == 1) var.names <- "Y"
