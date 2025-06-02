@@ -344,7 +344,7 @@
        IF (IFAIL.NE.0) RETURN
       ENDIF
       
-      Call DistCalc(SITINF1,NSITES,MXP1,Distance)      
+      Call DistCalc(SITINF1,NSITES,NATTR,MXP1,Distance)      
 *
 *	Calculate spatial correlation / covariance matrices (& convert
 *       to covariances for gamma & homoscedastic normal models). This is 

@@ -292,14 +292,18 @@
 *
       CALL GetScodes(TmpFlNo, NSites, Scodes, Ifail)
       IF (IFAIL.NE.0) RETURN
+
 *
 *       Calculate any requested nonlinear transformations of site attributes,
 *       and inter-site distance information
 *
       CALL ATTRXFM(SITINF,NSITES,ATTRTXT,NATTR,COVCODE,SITXFM,
      +                      FOUIDX,LEGIDX,THETA,NP,ICHECK,IFAIL,MXP)
+	 
       IF (IFAIL.NE.0) GOTO 990
-      Call DistCalc(SITINF,NSITES,MXP,Distance)      
+
+      Call DistCalc(SITINF,NSITES,NATTR,MXP,Distance)   
+	  
 *
 *	P is the number of parameters estimated. If NP(7) is 0,
 *	there are no nonlinear parameters in the model and there
@@ -307,6 +311,7 @@
 *
       P = NP(7)
       IF (P.EQ.0) P = NP(6)
+	  
 *
 *     Define thresholds for small positive values, if required
 *
@@ -315,6 +320,7 @@
 *       Read data, and set up design matrix. We read the data a day at a time,
 *	and then copy the appropriate bits to the X and Y arrays.
 *
+
       If (NeedRead.Eq.1) then 
        If (Verbosity.Gt.0) CALL INTPR('Reading data ...',-1,0,0)
        Call ReadData(UnitNos,MODEL,MissVal,RespIdx,AllowIncAvge,
@@ -322,9 +328,11 @@
      +               P,NP,COVCODE,TWO,THREE,PWTIDX,SCODES,SITINF,
      +               Distance,BETA,THETA,TRACE,ICHECK,NOBS,DateRange,
      +               IFAIL)
+     
        IF (IFAIL.NE.0) GOTO 990
        IF (NOBS.EQ.0) GOTO 930
       EndIf
+	  
 *
 *       And start estimating.
 *
@@ -343,7 +351,8 @@
      +          MXLAG,NOBS,NSITES,NATTR,SITXFM,GLBCOD,BETA,THETA,
      +          CovNaive,CovRobust,PHI,LogLik,Deviance,GLBVAL,
      +          SITINF,Distance,ATTRTXT,SCODES,UnitNos,Verbosity,IFAIL)
- 
+	 
+	   
        IF (IFAIL.NE.0) GOTO 990
 *
 *	Do estimation of spatial dependence structure if required,
@@ -1276,6 +1285,7 @@
 *
 *       Ensure that all files and pointers are positioned correctly
 *
+
       REWIND(UnitNos(1))
       Call FileReset(UnitNos(3:5))
 
@@ -1296,11 +1306,12 @@
         GOTO 50
        End If
       End if 
-      
+
       CALL COVSET(COVS,UnitNos(3:5),NP,NSITES,NVARS,RespIdx,COVCODE,
      +     TWO,THREE,SITINF,Distance,YY,MM,DD,DatArray,AllowIncAvge,
      +     PWTIDX,MXLAG,BETA,THETA,TRACE,0,FORCE,MISSFL,ICHECK,IFAIL,
      +     MXP,0,1)
+
       IF (IFAIL.NE.0) RETURN
       FORCE = 0
 *
@@ -1472,15 +1483,16 @@
 *	To fit a GLM, possibly involving nonlinear transformations of
 *	covariates, using Iterative Weighted Least Squares. Parameter
 *	vectors, standard errors and a log-likelihood are returned.
-*///////////////////////////////////////////////////////////////////////////
-*///////////////////////////////////////////////////////////////////////////
+*<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+*<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
 *////////////	NB THIS ROUTINE CONTAINS QUITE A FEW SECTIONS WHICH  ///////
 *////////////	ARE MODEL-SPECIFIC. THESE SECTIONS ARE ENCLOSED BY   ///////
-*////////////   LINES OF HASHES LIKE THIS, FOR EASY RECOGNITION IF   ///////
+*////////////   LINES OF CHEVRONS LIKE THIS, FOR EASY RECOGNITION IF ///////
 *////////////   YOU SUBSEQUENTLY WANT TO AMEND THEM OR ADD EXTRA     ///////
 *////////////   MODELS.                                              ///////
-*///////////////////////////////////////////////////////////////////////////
-*///////////////////////////////////////////////////////////////////////////
+*>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+*>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+
 ******************************************************************************
 *	ARGUMENTS
 *	~~~~~~~~~
@@ -1692,12 +1704,12 @@
       TRWRN = 0
       PHI = 1.0D0
       P1 = P
-*///////////////////////////////////////////////////////////////////////////
-*///////////////////////////////////////////////////////////////////////////
+*<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+*<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
       IF (MODEL.EQ.1) PHI = -1.0D0
       IF ((MODEL.EQ.10).OR.(MODEL.EQ.11)) P1 = P+1
-*///////////////////////////////////////////////////////////////////////////
-*///////////////////////////////////////////////////////////////////////////
+*<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+*<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
       MLPHI = PHI
       CALL TAUDEF(GLBVAL,GLBCOD,NP(8),THRESH,TRACE,THRTYP,MODEL,MXP)
 *
@@ -1705,8 +1717,8 @@
 *     daily sums of scores to a scratch file as we go along. Start 
 *     looking for a free file handle at 85.
 *
-      UFILNO = 85
       CALL SCROPN(2,2,0,UFILNO)
+      
       NDAYS = 0
 *
 *     Store the initial value of BETA, for e.g. Wald tests later
@@ -1734,14 +1746,14 @@
 *	... and start iterating. We only update the
 *	old log-likelihood when it was produced by an IWLS step
 *	rather than a `corrected overshoot'. We also set
-*   a threshold for judging whether we're going to 
-*   overshoot.
-*
+*       a threshold for judging whether we're going to 
+*       overshoot.
+*      
  100  IF (OVRSHT.EQ.0) THEN
        OLDLOGL = LOGL
        LLTOL = OLDLOGL
       ENDIF
-
+      
       LOGL = 0.0D0
       SUMSQ = 0.0D0
       NDAYS = 0
@@ -1757,8 +1769,8 @@
 *	itself changes from iteration to iteration. The XRC flag 
 *	indicates which case we're dealing with.
 *
-*///////////////////////////////////////////////////////////////////////////
-*///////////////////////////////////////////////////////////////////////////
+*<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+*<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
       IF ( (ITER.EQ.0).OR.(NP(7).GT.NP(6)).OR.(MODEL.EQ.1) ) THEN
        XRC = 1
       ELSE
@@ -1772,8 +1784,8 @@
        TMP = 1.0D0 - DLOG(PHI) - DIGAMM(1.0D0/PHI,IFAIL)
       ENDIF
 
-*///////////////////////////////////////////////////////////////////////////
-*///////////////////////////////////////////////////////////////////////////
+*<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+*<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
       MAXU = 0.0D0
       IDMAXU = 0
       XWZ = 0.0D0
@@ -1787,6 +1799,11 @@
  106   CONTINUE
        ENDIF
  105  CONTINUE
+*<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+*<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+      IF ((MODEL.EQ.10).OR.(MODEL.EQ.11)) SUMSCR(P1) = 0.0D0
+*>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+*>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
 *
 *     Decide whether we're going to write residual stuff to scratch 
 *     file
@@ -1805,18 +1822,19 @@
       DO 150 I = 1,NOBS
 *
 *       Compute linear predictor, fitted values etc. 
-*
+*       
        CALL FITCAL(BETA,NP,P,MXP,MODEL,UnitNos(90),I,ITER,TRWRN,TRACE,
      +                          MLPHI,LLINVL,X,Y,CaseWt,SITE,YY,MM,DD,
      +                          LOGL,MU,ETA,IFAIL)
+     
        IF (IFAIL.EQ.2) GOTO 170
        IF (IFAIL.NE.0) RETURN
 *
 *	Now finish off contribution to adjusted dependent variate
 *	and scores
 *
-*///////////////////////////////////////////////////////////////////////////
-*///////////////////////////////////////////////////////////////////////////
+*<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+*<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
        IF (MODEL.EQ.1) THEN
 *
 *	Logistic ... 
@@ -1845,8 +1863,8 @@
         IF ((ITER.EQ.0).OR.(TRACE.GT.0.0D0)) 
      +                            SUMLNY = SUMLNY + (CaseWt*DLOG(Y))
        ENDIF
-*///////////////////////////////////////////////////////////////////////////
-*///////////////////////////////////////////////////////////////////////////
+*<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+*<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
 *
 *       There's a bit to add on to Z if we're estimating nonlinear parameters
 *       (ETA is the linear predictor, but the vector of first derivatives
@@ -1877,7 +1895,7 @@
           XWX(J,K) = XWX(J,K) + ( X(J)*W*X(K) )
  166     CONTINUE
         ENDIF
- 165   CONTINUE
+ 165   CONTINUE 
 *
 *	Write prediction stuff to scratch file for use later on. We only 
 *       do this if it looks like we're about to converge (or if we've 
@@ -1889,18 +1907,26 @@
 *
 *     Write daily sums of scores to scratch file. Scores for mean components 
 *     need to be divided by PHI (NB PHI is stored as a negative number for 
-*     models where its value is known)
+*     models where its value is known). For models with a dispersion 
+*     parameter, the relevant scaling is already included in the calculations. 
 * 
         IF ((DD.NE.OD).OR.(MM.NE.OM).OR.(YY.NE.OY)) THEN
          DO J=0,P
           SUMSCR(J) = SUMSCR(J) / DABS(PHI)
-         END DO
+         END DO         
          WRITE(UFILNO) (SUMSCR(J),J=0,P1)
+*
+*	Now reset all objects so as to start computations for the new day
+*
+         OD = DD
+         OM = MM
+         OY = YY
+         NDAYS = NDAYS + 1
          DO 157 J=0,P
           SUMSCR(J) = WU*X(J)
  157     CONTINUE
-*///////////////////////////////////////////////////////////////////////////
-*///////////////////////////////////////////////////////////////////////////
+*<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+*<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
 *
 *       Append score contributions for dispersion parameters, for models
 *       that have them. NB these score contributions themselves depend on
@@ -1913,19 +1939,16 @@
          ELSE IF (MODEL.EQ.11) THEN
           SUMSCR(P+1) = 
      +          -CaseWt*((DLOG(Y/MU)-(Y/MU)) + TMP) / (MLPHI**2)
-         ENDIF
-*///////////////////////////////////////////////////////////////////////////
-*///////////////////////////////////////////////////////////////////////////
-         OD = DD
-         OM = MM
-         OY = YY
-         NDAYS = NDAYS + 1
+         ENDIF         
+*>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+*>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+
         ELSE
          DO 158 J=0,P
           SUMSCR(J) = SUMSCR(J) + (WU*X(J))
  158     CONTINUE
-*///////////////////////////////////////////////////////////////////////////
-*///////////////////////////////////////////////////////////////////////////
+*<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+*<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
          IF (MODEL.EQ.10) THEN
           SUMSCR(P+1) = SUMSCR(P+1) + 
      +          (CaseWt*( ((Y-MU)*(Y-MU) / MLPHI) - 1.0D0) / MLPHI)
@@ -1933,8 +1956,8 @@
           SUMSCR(P+1) = SUMSCR(P+1) -
      +          (CaseWt*((DLOG(Y/MU)-(Y/MU)) + TMP) / (MLPHI**2))
          ENDIF
-*///////////////////////////////////////////////////////////////////////////
-*///////////////////////////////////////////////////////////////////////////
+*<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+*<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
          IF (I.EQ.NOBS) THEN
           DO J=0,P
            SUMSCR(J) = SUMSCR(J) / DABS(PHI)
@@ -1944,13 +1967,14 @@
          ENDIF
         ENDIF
        ENDIF
+
  150  CONTINUE
 *
 *     Now calculate deviance and finish off likelihood calculations
 *     for models that need it
 *
-*///////////////////////////////////////////////////////////////////////////
-*///////////////////////////////////////////////////////////////////////////
+*<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+*<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
       IF (MODEL.EQ.1) THEN
 *
 *     For logistic with cell sizes all equal to 1, log-likelihood
@@ -1984,8 +2008,9 @@
       ENDIF
       IF (NP(9).GT.0) BETA(P+1) = MLPHI
       IF (ITER.EQ.0) LLR0 = LOGL
-*///////////////////////////////////////////////////////////////////////////
-*///////////////////////////////////////////////////////////////////////////
+*>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+*>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+
 *
 *       Set RECALC flag to 2 if we've converged and, if we haven't yet
 *       written the correct residual information to scratch file, go
@@ -2140,6 +2165,7 @@
          BETA(I) = BETA(I) + BETADJ(I)
  211    CONTINUE
        ENDIF
+
 *
 *       Update nonlinear parameters if there are any, and if we're
 *	iterating (doesn't work if MAXIT=0)
@@ -2316,16 +2342,16 @@
        RETURN
       ENDIF
       CovNaive = DABS(PHI)*CovNaive
-*///////////////////////////////////////////////////////////////////////////
-*///////////////////////////////////////////////////////////////////////////
+*<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+*<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
       IF (MODEL.EQ.10) THEN
        CovNaive(P1,P1) = 2.0D0*MLPHI*MLPHI/DBLE(NOBS)
       ELSE IF (MODEL.EQ.11) THEN
        CovNaive(P1,P1) = (MLPHI**4) / 
      +                (DBLE(NOBS)*(TRIGAMM(1.0D0/MLPHI,IFAIL)-MLPHI))
       ENDIF 
-*///////////////////////////////////////////////////////////////////////////
-*///////////////////////////////////////////////////////////////////////////
+*<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+*<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
       CovRobust = CovNaive
       XWSWX = CovNaive
 c###########################################################################
@@ -2343,15 +2369,15 @@ c###########################################################################
 c      CALL SNDWCH(CovRobust,XWSWX,UFILNO,P1,NDAYS,MXP)
       CALL SNDWCH(CovRobust,XWSWX,UFILNO,P,NDAYS,MXP)
       IF (P1.GT.P) CovRobust(P+1,P+1) = CovNaive(P+1,P+1)
-*///////////////////////////////////////////////////////////////////////////
-*///////////////////////////////////////////////////////////////////////////
+*<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+*<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
       IF ((MODEL.EQ.11).AND.(TRACE.GT.0.0D0)) THEN
        WRITE(MESSAGE,6) 
        CALL INTPR(TRIM(MESSAGE(1)),-1,0,0)
        CALL INTPR(TRIM(MESSAGE(2)),-1,0,0)
       ENDIF 
-*///////////////////////////////////////////////////////////////////////////
-*///////////////////////////////////////////////////////////////////////////
+*>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+*>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
       IF (ITER.EQ.MAXIT) THEN
        WRITE(MESSAGE(1),5)
        CALL INTPR(TRIM(MESSAGE(1)),-1,0,0)
@@ -2370,11 +2396,11 @@ c      CALL SNDWCH(CovRobust,XWSWX,UFILNO,P1,NDAYS,MXP)
 *     initial log-likelihood for future fits, through the replacement
 *     of trace values by their conditional expectations
 *
-*///////////////////////////////////////////////////////////////////////////
-*///////////////////////////////////////////////////////////////////////////
+*<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+*<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
       IF ((MODEL.EQ.11).AND.(TRACE.GT.0.0D0)) PHI = MLPHI
-*///////////////////////////////////////////////////////////////////////////
-*///////////////////////////////////////////////////////////////////////////
+*<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+*<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
       
  2    FORMAT(I15, F20.3,F13.4,2X,'(parameter ',I3,')')
  5    FORMAT(5X,'****WARNING**** Reached maximum ',
@@ -2559,7 +2585,7 @@ c      CALL SNDWCH(CovRobust,XWSWX,UFILNO,P1,NDAYS,MXP)
        OLDRES = RESTYP
        OLDDEP = DEPTYP
        OLDFNO = FILNO
-       CORFNO = 85
+
        CALL SCROPN(2,2,0,CORFNO)
 *
 *       Initialise arrays (Fortran 90 syntax)
@@ -2581,8 +2607,8 @@ c      CALL SNDWCH(CovRobust,XWSWX,UFILNO,P1,NDAYS,MXP)
          IF (RESTYP.EQ.0) THEN
           TMP = Y
          ELSEIF (RESTYP.EQ.1) THEN
-*///////////////////////////////////////////////////////////////////////////
-*///////////////////////////////////////////////////////////////////////////
+*<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+*<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
           IF (MODEL.EQ.1) THEN
            TMP = (Y-MU)/DSQRT(MU*(1.0D0-MU))
           ELSEIF (MODEL.EQ.10) THEN
@@ -2596,11 +2622,12 @@ c      CALL SNDWCH(CovRobust,XWSWX,UFILNO,P1,NDAYS,MXP)
            RETURN
           ENDIF
           TMP = TMP * Dsqrt(CaseWt)
-*///////////////////////////////////////////////////////////////////////////
-*///////////////////////////////////////////////////////////////////////////
+*>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+*>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+
          ELSEIF (RESTYP.EQ.2) THEN
-*///////////////////////////////////////////////////////////////////////////
-*///////////////////////////////////////////////////////////////////////////
+*<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+*<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
           IF (MODEL.EQ.11) THEN
            TMP = ( (Y/MU)**(1.0D0/3.0D0) )
           ELSE
@@ -2615,8 +2642,8 @@ c      CALL SNDWCH(CovRobust,XWSWX,UFILNO,P1,NDAYS,MXP)
           IFAIL = 999
           RETURN
          ENDIF
-*///////////////////////////////////////////////////////////////////////////
-*///////////////////////////////////////////////////////////////////////////
+*<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+*<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
         ENDIF
 *
 *   Now, if the date has changed OR if we're on the last observation, 
@@ -2907,14 +2934,16 @@ c      CALL SNDWCH(CovRobust,XWSWX,UFILNO,P1,NDAYS,MXP)
 *     MU        (DOUBLE, output): fitted value for current case
 *     ETA       (DOUBLE, output): linear predictor for current case
 *
-*///////////////////////////////////////////////////////////////////////////
-*///////////////////////////////////////////////////////////////////////////
+*<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+*<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
 *////////////	NB THIS ROUTINE CONTAINS SECTIONS WHICH ARE MODEL-   ///////
 *////////////	SPECIFIC. THESE SECTIONS ARE ENCLOSED BY LINES OF    ///////
 *////////////   HASHES LIKE THIS, FOR EASY RECOGNITION IF YOU WANT   ///////
 *////////////   TO AMEND THEM SUBSEQUENTLY, OR TO ADD EXTRA MODELS.  ///////
-*///////////////////////////////////////////////////////////////////////////
-*///////////////////////////////////////////////////////////////////////////
+*>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+
+*>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+
 ******************************************************************************
       INTEGER NP(10),P,MAXP,MODEL,SCRFNO,RECNO,TRWRN,IFAIL,ITER
       INTEGER SITE,YY,MM,DD
@@ -2953,8 +2982,8 @@ c      CALL SNDWCH(CovRobust,XWSWX,UFILNO,P1,NDAYS,MXP)
 *
 *	And fitted values ...
 *
-*///////////////////////////////////////////////////////////////////////////
-*///////////////////////////////////////////////////////////////////////////
+*<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+*<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
        IF (MODEL.EQ.1) THEN
         TMP = DEXP(ETA)
         MU = TMP/(1.0D0+TMP)
@@ -2968,16 +2997,16 @@ c      CALL SNDWCH(CovRobust,XWSWX,UFILNO,P1,NDAYS,MXP)
         IFAIL = 999
         RETURN
        ENDIF
-*///////////////////////////////////////////////////////////////////////////
-*///////////////////////////////////////////////////////////////////////////
+*<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+*<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
 *
 *	Replace trace values by their approximate conditional
 *	expectations as appropriate. We need to modify the value of 
 *       Y in the data file as well if this happens.
 *
        IF (Y.LT.TRACE) THEN
-*///////////////////////////////////////////////////////////////////////////
-*///////////////////////////////////////////////////////////////////////////
+*<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+*<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
 *
 *	Gamma model. This is rather a crude approximation, but it 
 *	avoids having to do numerical integration, which is important 
@@ -3018,11 +3047,11 @@ c      CALL SNDWCH(CovRobust,XWSWX,UFILNO,P1,NDAYS,MXP)
          IFAIL = 1
          RETURN
         ENDIF
-*///////////////////////////////////////////////////////////////////////////
-*///////////////////////////////////////////////////////////////////////////
+*>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+*>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
        ENDIF
-*///////////////////////////////////////////////////////////////////////////
-*///////////////////////////////////////////////////////////////////////////
+*<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+*<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
 *
 *	For binary outcomes, check that fitted values aren't 0 or 1 
 *	to machine precision. Only stop the prog if this happens with
@@ -3046,8 +3075,8 @@ c      CALL SNDWCH(CovRobust,XWSWX,UFILNO,P1,NDAYS,MXP)
 *       possibly being uninitialised.
 *
        LLincr = 0.0d0
-*///////////////////////////////////////////////////////////////////////////
-*///////////////////////////////////////////////////////////////////////////
+*<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+*<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
        IF (MODEL.EQ.1) THEN
 *
 *	Logistic ... (McCullagh & Nelder, eqn 4.13)
@@ -3074,8 +3103,8 @@ c      CALL SNDWCH(CovRobust,XWSWX,UFILNO,P1,NDAYS,MXP)
 *
         LLincr = - (Y/MU) - DLOG(MU)
        ENDIF
-*///////////////////////////////////////////////////////////////////////////
-*///////////////////////////////////////////////////////////////////////////
+*<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+*<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
 *
 *       And finally, add the (weighted) increment to the log-likelihood
 *
@@ -3094,15 +3123,15 @@ c      CALL SNDWCH(CovRobust,XWSWX,UFILNO,P1,NDAYS,MXP)
 *       To perform a basic residual analysis - Pearson residuals
 *       broken down by month, site and year, along with various other
 *       model summaries.
-*///////////////////////////////////////////////////////////////////////////
-*///////////////////////////////////////////////////////////////////////////
+*>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+*>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
 *////////////   NB THIS ROUTINE CONTAINS QUITE A FEW SECTIONS WHICH  ///////
 *////////////   ARE MODEL-SPECIFIC. THESE SECTIONS ARE ENCLOSED BY   ///////
 *////////////   LINES OF HASHES LIKE THIS, FOR EASY RECOGNITION IF   ///////
 *////////////   YOU SUBSEQUENTLY WANT TO AMEND THEM OR ADD EXTRA     ///////
 *////////////   MODELS.                                              ///////
-*///////////////////////////////////////////////////////////////////////////
-*///////////////////////////////////////////////////////////////////////////
+*<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+*<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
 *>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
 *>>>>>>>>>>>>>>>>>>>>>>>>>>>    PARAMETERS      >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
 *>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
@@ -3238,8 +3267,8 @@ c      CALL SNDWCH(CovRobust,XWSWX,UFILNO,P1,NDAYS,MXP)
  106   CONTINUE
  105  CONTINUE
       OLDDAT = 0
-*///////////////////////////////////////////////////////////////////////////
-*///////////////////////////////////////////////////////////////////////////
+*<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+*<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
 *
 *     Logistic model: initialise classification table & theoretical
 *     std dev of Pearson residuals
@@ -3259,8 +3288,8 @@ c      CALL SNDWCH(CovRobust,XWSWX,UFILNO,P1,NDAYS,MXP)
        IF (IFAIL.NE.0) RETURN
        SARE = DSQRT(SARE)
       ENDIF
-*///////////////////////////////////////////////////////////////////////////
-*///////////////////////////////////////////////////////////////////////////
+*<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+*<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
 *
 *       Go through and calculate all required sums, and sums of squares.
 *
@@ -3268,8 +3297,9 @@ c      CALL SNDWCH(CovRobust,XWSWX,UFILNO,P1,NDAYS,MXP)
        READ(FILNO,REC=I) (CASEID(J),J=1,4),Y,MU,ETA,CaseWt
        RAWRES = Y - MU
        MSE = MSE + (RAWRES**2)
-*///////////////////////////////////////////////////////////////////////////
-*///////////////////////////////////////////////////////////////////////////
+*>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+*>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+
 *
 *     Logistic model: produce classification tables, and standard errors. 
 *     Rows of CTABLE represent stratification by predicted outcome.
@@ -3303,8 +3333,8 @@ c      CALL SNDWCH(CovRobust,XWSWX,UFILNO,P1,NDAYS,MXP)
         ARBARO = ARBARO + TMP
         SARO = SARO + ( TMP**2 )
        ENDIF
-*///////////////////////////////////////////////////////////////////////////
-*///////////////////////////////////////////////////////////////////////////
+*<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+*<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
 *
 *	Now Pearson residuals - firstly, overall scores and secondly,
 *	stratified by year, month and site. Also calculate contributions
@@ -3404,8 +3434,8 @@ c      CALL SNDWCH(CovRobust,XWSWX,UFILNO,P1,NDAYS,MXP)
       SPR = DSQRT(SPR)
       SEPR = SESCAL*SPR/DSQRT(DBLE(NOBS))
       MSE = MSE/DBLE(NOBS-NP)
-*///////////////////////////////////////////////////////////////////////////
-*///////////////////////////////////////////////////////////////////////////
+*<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+*<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
 *
 *     Logistic model
 *
@@ -3438,8 +3468,8 @@ c      CALL SNDWCH(CovRobust,XWSWX,UFILNO,P1,NDAYS,MXP)
        SARO = (SARO - (DBLE(NOBS)*(ARBARO**2)))/DBLE(NOBS-NP)
        SARO = DSQRT(SARO)
       ENDIF
-*///////////////////////////////////////////////////////////////////////////
-*///////////////////////////////////////////////////////////////////////////
+*<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+*<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
 *
 *       Broken down by month. Use divisor N-1 for observed standard 
 *       deviations (they're deviations from observed means) 

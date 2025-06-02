@@ -1,5 +1,5 @@
 **************************************************************************
-*       © UCL 2002-2010
+*       Â© UCL 2002-2010
 **************************************************************************
       BLOCK DATA DSCTXT
 **************************************************************************
@@ -216,6 +216,7 @@
 
       SAVE PI,PIDEF
       DATA PIDEF /0/
+	  
 *
 *	Compute PI if we haven't done so already
 *
@@ -225,6 +226,7 @@
       ENDIF
       NXATTR = NATTR
       IFAIL = 0
+	  
 *
 *	We go through the site-specific covariates one at a time, 
 *	checking to see if there's a corresponding entry in XFM.
@@ -800,14 +802,16 @@
 *     MXNP     - Maximum number of predictors. Input.
 *     IFAIL    - error flag. Output
 ******************************************************************************
-      INTEGER FILNO,TSCALE,FY,FM,FD,NPRDEF,MXNP,IFAIL
-      DOUBLE PRECISION XVALS(MXNP,3)
+      INTEGER, intent(in) :: FILNO, TSCALE, NPRDEF, MXNP
+	  Integer, intent(out):: FY, FM, FD, IFAIL
+      DOUBLE PRECISION, intent(out) :: XVALS(MXNP,3)
       INTEGER I
-
+	  
       FY = 0
       FM = 0
       FD = 0
       IFAIL = 0
+
       IF (TSCALE.EQ.1) THEN
        READ(FILNO,1,ERR=99,END=98,IOSTAT=IFAIL) 
      +                         FY,(XVALS(I,TSCALE),I=1,NPRDEF)

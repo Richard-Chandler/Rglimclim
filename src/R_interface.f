@@ -248,14 +248,14 @@
 *	TmpFlNm	- Name of temporary file
 *       Msg     - Error message
 *****************************************************************************
-      CHARACTER*12 TmpFlNm
+      CHARACTER*16 TmpFlNm
       CHARACTER*100 Msg
 
       IFAIL = 0
 *
 *     Construct name of temporary file, open it and read first line
 *
-      WRITE(TmpFlNm, '(''RGLCtmp_'',I4)') TmpFlNo  
+      WRITE(TmpFlNm, '(''RGLCtmp_'',I4,''.txt'')') TmpFlNo  
       Call GetHandle(UnitNo)
       OPEN(UnitNo,FILE=TmpFlNm)
       READ(UnitNo,*,ERR=99)
@@ -704,7 +704,7 @@ c      END
 ******************************************************************************
 *
 *       To connect an ASCII file to a unit for input / output, where the
-*       filename is held in temporary file RGLCtmp_# and # is the value of
+*       filename is held in temporary file RGLCtmp_#.txt and # is the value of
 *       TmpFlNo (this is necessary because from R version 3.6.1 onwards, 
 *       the passing of characters between R and Fortran was deprecated).
 *       Arguments:
@@ -726,11 +726,11 @@ c      END
       Character (len=Varlen) :: Filename
 
       Integer, intent(out) :: UnitNo, Ifail
-      Character (len=12) :: TmpFlNm
+      Character (len=16) :: TmpFlNm
       Character (len=10) :: FlNmFmt
       
       Ifail = 0
-      WRITE(TmpFlNm, '(''RGLCtmp_'',I4)') TmpFlNo  
+      WRITE(TmpFlNm, '(''RGLCtmp_'',I4,''.txt'')') TmpFlNo  
       WRITE(FlNmFmt, '(''(A'',I7,'')'')') VarLen
 *
 *       Find an available file handle, attach it to the temporary file and

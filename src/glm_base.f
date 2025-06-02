@@ -13,7 +13,7 @@
 *  files fit_logi.f, fit_gamm.f and simrain.f
 *
 *  REVISION HISTORY: see manual.
-*  © UCL 2002
+*  Â© UCL 2002
 ******************************************************************************
 ******************************************************************************
 ******************************************************************************
@@ -239,6 +239,7 @@ C
 *       Also calculate inter-site distances, if these are needed by 
 *      a weighting scheme subsequently
 *
+
       IF (MISSST.EQ.1) THEN
        MISSFL(1:NSITES) = 0
        IF ((FORCE.EQ.1).OR.(RECALC.GT.0)) THEN 
@@ -248,16 +249,17 @@ C
        ENDIF
       ENDIF
 *
-*	This routine does all sites for 1 day; therefore we only need 
+*		This routine does all sites for 1 day; therefore we only need 
 *       to compute year and month effects, and `external' daily effects, 
 *       once (save on flops). Don't do any parameters that we
-*	don't have to! Values are only set if the year/month changes.
+*		don't have to! Values are only set if the year/month changes.
 *       This means that these elements of COVS must NOT be changed 
 *       between calls. First years (trends and `external forcings'
 *       are dealt with differently. NB the need to deal with missing
 *       data when external forcings are involved - effectively, we
 *       just go onto the next year).
 *
+
       DO 50 J=NP(1)+1,NP(2)
        IF ((RECALC.GT.0).AND.(THETA(J,1).GT.1.0D8)) GOTO 50
        IF ((YEAR.NE.OLDYR).OR.(FORCE.EQ.1)) THEN
@@ -302,6 +304,7 @@ C
 *       are dealt with differently.
 *
       IF ((RECALC.GT.0).AND.(FORCE.EQ.0)) GOTO 99
+
       DO 60 J=NP(2)+1,NP(3)
        IF ((MONTH.NE.OLDMN).OR.(FORCE.EQ.1)) THEN
         IF (MOD(IABS(COVCODE(J)),1000).LE.50) THEN
@@ -658,14 +661,15 @@ C
 *       NFIELDS	Number of fields per record - mandatory if ACCESS = 
 *               'DIRECT', ignored otherwise. If used, each record is 
 *               long enough for NFIELDS double precision entries. Input.
-*       FILNO	Number of file when it is opened. User inputs an initial
-*               value, then it is incremented until a vacant file handle 
-*               is found.
+*       FILNO	Number of file when it is opened. This is determined automatically
+*               by subroutine GetHandle.
 *       BYTELN    Record length required to store a single double precision
 *                 number
 *       RECL      Total record length required for NFIELDS numbers
 *******************************************************************************
-      INTEGER ACODE,FCODE,NFIELDS,FILNO,BYTELN,RECL
+      INTEGER, intent(in) :: ACODE, FCODE, NFIELDS
+      Integer, intent(out) :: FILNO
+      Integer BYTELN, RECL
 *******************************************************************************
 *       CHARACTER variables
 *       ^^^^^^^^^^^^^^^^^^^
@@ -673,11 +677,12 @@ C
 *******************************************************************************
       CHARACTER FORM*11
 *******************************************************************************
+
 *
 *       Define FORM
 *
       If (FCODE.EQ.1) then
-       FORM = ' FORMATTED'
+       FORM = '  FORMATTED'
       Else If (FCODE.EQ.2) then
        FORM = 'UNFORMATTED'
       End If
@@ -698,7 +703,7 @@ C
       IF (ACODE.EQ.1) THEN
        OPEN(FILNO,STATUS='SCRATCH',ACCESS='DIRECT',FORM=FORM,RECL=RECL)
       ELSE IF (ACODE.EQ.2) THEN 
-       OPEN(FILNO,STATUS='SCRATCH',ACCESS='SEQUENTIAL',FORM=FORM)
+       OPEN(FILNO, STATUS='SCRATCH', ACCESS='SEQUENTIAL', FORM=FORM)
       ENDIF
 
       END
@@ -1244,7 +1249,7 @@ C
 ******************************************************************************
 ******************************************************************************
 ******************************************************************************
-      Subroutine DistCalc(SiteInfo,NSITES,MXP,Distance)
+      Subroutine DistCalc(SiteInfo,NSITES,NATTR,MXP,Distance)
 ******************************************************************************
 *
 *       To calculate an array of inter-site distances. Arguments:
@@ -1253,12 +1258,13 @@ C
 *                       Distances will be calculated from the first two 
 *                       attributes (if present).
 *       NSITES          Number of sites
+*       NATTR			Number of attributes defined for each site
 *       MXP             For dimensioning Siteinfo
 *       Distance        Array of inter-site distances. First slice is 
 *                       X-separation, second slice is Y-separation and 
 *                       third slice is Euclidean separation.
 ******************************************************************************
-      Integer, intent(in) :: NSITES,MXP
+      Integer, intent(in) :: NSITES, NATTR, MXP
       Double precision, intent(in) :: Siteinfo(NSITES,MXP,0:3)
       Double precision, intent(out) :: Distance(3,NSITES,NSITES)
 ******************************************************************************
@@ -1268,9 +1274,9 @@ C
 ******************************************************************************
       Integer I,J
       
-      If (MXP.EQ.0) then
+      If (NATTR.EQ.0) then
        Distance = 0.0d0
-      Else if (MXP.EQ.1) then
+      Else if (NATTR.EQ.1) then
        Do I=1,NSITES
         Distance(1,I,I) = 0.0d0
         Do J=I+1,NSITES
