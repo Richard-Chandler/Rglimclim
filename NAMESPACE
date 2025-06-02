@@ -1,6 +1,6 @@
 # NAMESPACE for Rglimclim: took R-generated default and added
 # the next line. 
-useDynLib(Rglimclim)
+useDynLib(Rglimclim, .registration=TRUE)
 #
 # Next lines suggested by R CMD check with R v 3.4.2
 #
