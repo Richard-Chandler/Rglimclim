@@ -216,7 +216,6 @@
 
       SAVE PI,PIDEF
       DATA PIDEF /0/
-	  
 *
 *	Compute PI if we haven't done so already
 *
@@ -225,8 +224,7 @@
        PIDEF = 1
       ENDIF
       NXATTR = NATTR
-      IFAIL = 0
-	  
+      IFAIL = 0  
 *
 *	We go through the site-specific covariates one at a time, 
 *	checking to see if there's a corresponding entry in XFM.
@@ -803,10 +801,10 @@
 *     IFAIL    - error flag. Output
 ******************************************************************************
       INTEGER, intent(in) :: FILNO, TSCALE, NPRDEF, MXNP
-	  Integer, intent(out):: FY, FM, FD, IFAIL
+      Integer, intent(out):: FY, FM, FD, IFAIL
       DOUBLE PRECISION, intent(out) :: XVALS(MXNP,3)
       INTEGER I
-	  
+  
       FY = 0
       FM = 0
       FD = 0

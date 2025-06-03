@@ -299,11 +299,10 @@
 *
       CALL ATTRXFM(SITINF,NSITES,ATTRTXT,NATTR,COVCODE,SITXFM,
      +                      FOUIDX,LEGIDX,THETA,NP,ICHECK,IFAIL,MXP)
-	 
+
       IF (IFAIL.NE.0) GOTO 990
 
-      Call DistCalc(SITINF,NSITES,NATTR,MXP,Distance)   
-	  
+      Call DistCalc(SITINF,NSITES,NATTR,MXP,Distance)
 *
 *	P is the number of parameters estimated. If NP(7) is 0,
 *	there are no nonlinear parameters in the model and there
@@ -311,7 +310,6 @@
 *
       P = NP(7)
       IF (P.EQ.0) P = NP(6)
-	  
 *
 *     Define thresholds for small positive values, if required
 *
@@ -331,8 +329,7 @@
      
        IF (IFAIL.NE.0) GOTO 990
        IF (NOBS.EQ.0) GOTO 930
-      EndIf
-	  
+      EndIf  
 *
 *       And start estimating.
 *
@@ -351,8 +348,6 @@
      +          MXLAG,NOBS,NSITES,NATTR,SITXFM,GLBCOD,BETA,THETA,
      +          CovNaive,CovRobust,PHI,LogLik,Deviance,GLBVAL,
      +          SITINF,Distance,ATTRTXT,SCODES,UnitNos,Verbosity,IFAIL)
-	 
-	   
        IF (IFAIL.NE.0) GOTO 990
 *
 *	Do estimation of spatial dependence structure if required,
@@ -818,8 +813,8 @@
 *                 simultaneous observations. 50000 corresponds to 
 *                 roughly 150 years. 
 ******************************************************************************
-        INTEGER MXNOBS
-        PARAMETER (MXNOBS=50000)
+c        INTEGER MXNOBS
+c        PARAMETER (MXNOBS=50000)
 ******************************************************************************
 *               INTEGER variables
 *               ^^^^^^^^^^^^^^^^^
@@ -875,7 +870,8 @@
 ******************************************************************************
       DOUBLE PRECISION SITINF(NSITES,MXP,0:3)
       DOUBLE PRECISION JNTPRB(NSITES,NSITES),CORMAT(NSITES,NSITES)
-      DOUBLE PRECISION JNTN(NSITES,NSITES),Y,P,TAU(MXNOBS,2)
+      DOUBLE PRECISION JNTN(NSITES,NSITES),Y,P
+      Double precision, dimension(:,:), allocatable :: TAU
       DOUBLE PRECISION CDFBVN,QNORM,FCUR,FL,FU,LB,UB,TOL
       DOUBLE PRECISION RHO(MXP),XSEP,YSEP
 ***************************************************************************
@@ -887,6 +883,17 @@
       CHARACTER SCODES(NSITES)*4,MESSAGE(2)*255
 ***************************************************************************
 *
+*	Allocate storage for TAU
+*
+***************************************************************************
+      allocate (TAU(1:NOBS, 1:2), Stat=IFAIL)
+      if (ifail.ne.0) then
+       write(message(1),6)
+       call intpr(trim(message(1)),-1,0,0)
+       ifail = 999 
+       return
+      end if
+*
 *       Calculate matrix of observed joint probabilites
 *
       If (Verbosity.Gt.0) then
@@ -895,7 +902,7 @@
        CALL INTPR(TRIM(MESSAGE(2)),-1,0,0)
       End if
       CALL EMPCOR(FILNO,NSITES,NOBS,1,0,3,JNTPRB,JNTN,IFAIL)
-      IF (IFAIL.NE.0) RETURN
+      IF (IFAIL.NE.0) goto 999
 *
 *       Now, for each pair of sites, find the latent Gaussian 
 *       correlation corresponding to the observed joint occurrence
@@ -910,9 +917,9 @@
          WRITE(MESSAGE(1),4) SCODES(I),SCODES(J)
          CALL INTPR(TRIM(MESSAGE(1)),-1,0,0)
         End if
-        IF (JNTN(I,J).GT.DBLE(MXNOBS)) THEN
+        IF (JNTN(I,J).GT.DBLE(NOBS)) THEN
          CALL PRGERR(' CORLAT ',' fitting.f  ',2,IFAIL)
-         RETURN
+         goto 999
         ENDIF
         IF (JNTN(I,J).GT.0.0D0) THEN
 *
@@ -1009,7 +1016,7 @@
           WRITE(MESSAGE(1),2)
           CALL INTPR(TRIM(MESSAGE(1)),-1,0,0)
           IFAIL = 999 
-          RETURN
+          goto 999
          ENDIF
 
          IF ((DABS(FCUR).GT.TOL).AND.(DABS(UB-LB).GT.TOL)) GOTO 210
@@ -1042,13 +1049,16 @@
  500   CONTINUE
        IF (SPMOD.GT.1) CALL CORFIT(SPMOD,CORMAT,JNTN,SITINF,NATTR,
      +                                   SCODES,NSITES,RHO,MXP,IFAIL)
-       IF (IFAIL.NE.0) RETURN
+       IF (IFAIL.NE.0) goto 999
       ELSE
        WRITE(MESSAGE(1),1)
        CALL INTPR(TRIM(MESSAGE(1)),-1,0,0)
        IFAIL = 999 
-       RETURN
+       goto 999
       ENDIF
+      
+ 999  deallocate (TAU)
+      return
 
  1    FORMAT('****ERROR**** Invalid value of SPMOD in routine CORLAT')
  2    FORMAT('****ERROR**** Can''t bracket correlation in routine ',
@@ -1058,7 +1068,9 @@
  4    FORMAT(10X,'--- Sites ',A4,' and ',A4,' ---')
  5    FORMAT('****WARNING**** Observed joint occurrence frequency ',
      +'is incompatible',/,'with modelled marginal probabilities. ',
-     +'Setting latent correlation to ',F4.1) 
+     +'Setting latent correlation to ',F4.1)
+ 6    FORMAT('****ERROR**** unable to allocate storage in routine ',
+     +       'CORLAT.')
  18   FORMAT('Site1  Site2  Corr      N   Xsep    Ysep ') 
  19   FORMAT(A4,4X,A4,4X,F7.4,1X,I5,2(1X,F7.3))
 
