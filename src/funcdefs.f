@@ -631,6 +631,9 @@
       MISSFL = 0
       IFAIL = 0
 *
+*     Check that temporary storage is adequate
+*
+*
 *     If this is the first time we've read this file, scan through it once
 *     to identify the first and last lines, and check that all the rows 
 *     are present and in the right order. Other checks were performed when 
@@ -656,8 +659,7 @@
 *     lines (b) check that all rows are present and in the correct order
 *
  70    CURLIN(TSCALE) = CURLIN(TSCALE) + 1
-       CALL RDXREC(FILNO,TSCALE,FY,FM,FD,NPRDEF(TSCALE),
-     +                                             TMPARR,MAXNPR,IFAIL)
+       CALL RDXREC(FILNO,TSCALE,FY,FM,FD,NPRDEF(TSCALE),TMPARR,IFAIL)
        IF (IFAIL.EQ.1) GOTO 98
        IF (BEGLIN(TSCALE).EQ.0) THEN
         BEGLIN(TSCALE) = CURLIN(TSCALE)
@@ -740,8 +742,7 @@
 *     the first pass
 * 
       CURLIN(TSCALE) = REQLIN(TSCALE)
-      CALL RDXREC(FILNO,TSCALE,FY,FM,FD,NPRDEF(TSCALE),
-     +                                           TMPARR,MAXNPR,IFAIL)
+      CALL RDXREC(FILNO,TSCALE,FY,FM,FD,NPRDEF(TSCALE),TMPARR,IFAIL)
       XVAL = TMPARR(PREDNO,TSCALE)
       IF (DABS(XVAL+9999.9D0).LT.1.0D-4) then
        MISSFL = 1
@@ -773,7 +774,7 @@
 ******************************************************************************
 ******************************************************************************
 ******************************************************************************
-      SUBROUTINE RDXREC(FILNO,TSCALE,FY,FM,FD,NPRDEF,XVALS,MXNP,IFAIL)
+      SUBROUTINE RDXREC(FILNO,TSCALE,FY,FM,FD,NPRDEF,XVALS,IFAIL)
 *
 *     Reads a record of an `external' data file. Arguments:
 *
@@ -784,12 +785,11 @@
 *     FD       - day read from file. Output
 *     NPRDEF   - Number of predictors defined. Input
 *     XVALS    - array of predictors read from file. Output
-*     MXNP     - Maximum number of predictors. Input.
 *     IFAIL    - error flag. Output
 ******************************************************************************
-      INTEGER, intent(in) :: FILNO, TSCALE, NPRDEF, MXNP
+      INTEGER, intent(in) :: FILNO, TSCALE, NPRDEF
       Integer, intent(out):: FY, FM, FD, IFAIL
-      DOUBLE PRECISION, intent(out) :: XVALS(MXNP,3)
+      DOUBLE PRECISION, intent(out) :: XVALS(NPRDEF,3)
       INTEGER I
   
       FY = 0
