@@ -631,10 +631,6 @@
       MISSFL = 0
       IFAIL = 0
 *
-*     Check that temporary storage is adequate
-*
-      IF (PREDNO.GT.MAXNPR) GOTO 96
-*
 *     If this is the first time we've read this file, scan through it once
 *     to identify the first and last lines, and check that all the rows 
 *     are present and in the right order. Other checks were performed when 
@@ -773,9 +769,6 @@
       IFAIL = 210
       RETURN
 
- 4    FORMAT('****ERROR**** Inadequate storage in routine EXTSET ',
-     +'(file funcdefs.f).',/,'Please increase value of MAXNPR ',
-     +'and recompile.')
  5    FORMAT('****ERROR**** line ',I5,' of ',A8,' input data',
      +' file carries incorrect date.')
  6    FORMAT('****ERROR**** unexpected error in ',A8,
