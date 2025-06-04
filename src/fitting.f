@@ -806,15 +806,6 @@
      +                  RHO,OUTFNO,SITINF,NATTR,MXP,Verbosity,IFAIL)
 *
 *       To estimate latent Gaussian inter-site correlations
-*>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
-*>>>>>>>>>>>>>>>>>>>>>>>>>>>    PARAMETERS      >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
-*>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
-*       MXNOBS  - Maximum number of days for which two sites have
-*                 simultaneous observations. 50000 corresponds to 
-*                 roughly 150 years. 
-******************************************************************************
-c        INTEGER MXNOBS
-c        PARAMETER (MXNOBS=50000)
 ******************************************************************************
 *               INTEGER variables
 *               ^^^^^^^^^^^^^^^^^
@@ -3142,11 +3133,6 @@ c      CALL SNDWCH(CovRobust,XWSWX,UFILNO,P1,NDAYS,MXP)
 *////////////   LINES OF HASHES LIKE THIS, FOR EASY RECOGNITION IF   ///////
 *////////////   YOU SUBSEQUENTLY WANT TO AMEND THEM OR ADD EXTRA     ///////
 *////////////   MODELS.                                              ///////
-*<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
-*<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
-*>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
-*>>>>>>>>>>>>>>>>>>>>>>>>>>>    PARAMETERS      >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
-*>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
 ***************************************************************************
 *       Arguments:
 *       ^^^^^^^^^^
@@ -3238,8 +3224,6 @@ c      CALL SNDWCH(CovRobust,XWSWX,UFILNO,P1,NDAYS,MXP)
       DOUBLE PRECISION SEADJM(12),SEADJY(FIRSTYR:FIRSTYR+NYEARS-1)
       DOUBLE PRECISION TMP
 ***************************************************************************
-*	Check dimensioning:
-*
 *
 *       Initialise arrays (easier this way than in a DATA statement)
 *

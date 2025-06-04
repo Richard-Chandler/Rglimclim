@@ -591,7 +591,6 @@
 ******************************************************************************
 *     Additional INTEGERs
 *     ^^^^^^^^^^^^^^^^^^^
-*     MAXNPR  - Maximum number of external predictors
 *     NHEAD   - Numbers of header rows to skip in each type of file
 *     CHKFIL  - Indicators for whether input files have been checked. 
 *     NPRDEF  - Number of predictors defined in the file
@@ -605,8 +604,6 @@
 *     FY,FM,FD- year, month and day from input file
 *     I       - counter
 ******************************************************************************
-      INTEGER MAXNPR
-      PARAMETER(MAXNPR=950)
       INTEGER NHEAD(3),CHKFIL(3),NPRDEF(3),LIN1ID(3),REQIDX(3)
       INTEGER CURLIN(3),REQLIN(3),BEGLIN(3),ENDLIN(3),OLDIDX
       INTEGER FY,FM,FD,I
@@ -623,14 +620,13 @@
 *     ^^^^^^^^^^^^^^^^^^
 *     TMPARR  - To contain a row of predictors from the input file 
 ******************************************************************************
-      DOUBLE PRECISION TMPARR(MAXNPR,3)
+      DOUBLE PRECISION, allocatable, save :: TMPARR(:,:)
 
       DATA (NHEAD(I),I=1,3) /39,40,41/
       DATA (SCLTXT(I),I=1,3) /'annual','monthly','daily'/
       
       COMMON /ExtFileState/ CHKFIL,LIN1ID,CURLIN,BEGLIN,ENDLIN,NPRDEF
       SAVE /ExtFileState/
-      SAVE TMPARR
 
       MISSFL = 0
       IFAIL = 0
@@ -652,6 +648,9 @@
  50    CONTINUE
        CURLIN(TSCALE) = NHEAD(TSCALE) + 1
        READ(FILNO,*,ERR=98) NPRDEF(TSCALE)
+       if (.not.(allocated(tmparr))) THEN
+         allocate (tmparr(1:nprdef(tscale), 1:3))
+       end if
        DO 60 I=1,NPRDEF(TSCALE)+1
         CURLIN(TSCALE) = CURLIN(TSCALE) + 1
         READ(FILNO,*,ERR=98)

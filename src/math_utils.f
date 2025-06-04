@@ -514,13 +514,7 @@ C
 *              definite (this is true of all covariance matrices,
 *              for example). INTEGER, input.
 *       IFAIL  Error flag
-*
-ccc
-ccc     Extra dimensioning not needed for shared libary usage
-ccc
-c      INTEGER MAXDIM
-c      PARAMETER (MAXDIM=500)
-    
+*    
       INTEGER P,I,J,K,MXP,DECOMP,METHOD,IFAIL
       DOUBLE PRECISION X(MXP,MXP)
 **********************************************************************
@@ -547,16 +541,6 @@ c      PARAMETER (MAXDIM=500)
       CHARACTER*255 MESSAGE(3)
 
       IFAIL = 0
-ccc
-ccc     Dimension check not needed for shared library usage
-ccc
-C      IF (P.GT.MAXDIM) THEN
-C       WRITE(MESSAGE,1) MAXDIM
-C       CALL INTPR(TRIM(MESSAGE(1)),-1,0,0)
-C       CALL INTPR(TRIM(MESSAGE(2)),-1,0,0)
-C       IFAIL = -1
-C       RETURN
-C      ENDIF
 *<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
 * METHOD 1: CHOLESKY DECOMPOSITION
 *<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
@@ -624,10 +608,6 @@ C      ENDIF
  210   CONTINUE
       ENDIF
       RETURN
-c 1    FORMAT('****ERROR**** in MATINV, insufficient local storage ',
-c     +'has been allocated.',/,
-c     +'Increase the parameter MAXDIM in the source code (currently ',
-c     +I4,').')
  3    FORMAT(5X,'****ERROR**** in MATINV, matrix isn''t positive ',
      +'definite so Cholesky',/5X,
      +'decomposition (METHOD=1) won''t work. Problem found on row ',I3,
@@ -643,18 +623,16 @@ c     +I4,').')
 *       FORTRAN' (Press et al, 1989, CUP), pp. 35-36, so no 
 *       comments.
 *
-      DOUBLE PRECISION TINY,A,VV,AAMAX,SUM,DUM
-      INTEGER N,NP,NMAX,INDX,D,IMAX,IFAIL
+      DOUBLE PRECISION TINY,A,AAMAX,SUM,DUM
+      Double precision, allocatable :: VV(:)
+      INTEGER N,NP,INDX,D,IMAX,IFAIL
       INTEGER I,J,K
       CHARACTER*255 MESSAGE(2)
-      PARAMETER (NMAX=500,TINY=1.0D-10)
-      DIMENSION A(NP,NP),INDX(NP),VV(NMAX)
-      
+      PARAMETER (TINY=1.0D-10)
+      DIMENSION A(NP,NP),INDX(NP)
+
+      allocate (VV(1:N))
       IFAIL = 0
-*
-*      Check there's enough storage in here ...
-*
-      IF (NMAX.LT.N) GOTO 990
 *
 *      ... and carry on 
 *
@@ -670,6 +648,7 @@ c     +I4,').')
         CALL INTPR(TRIM(MESSAGE(1)),-1,0,0)
         CALL INTPR(TRIM(MESSAGE(2)),-1,0,0)
         IFAIL = I
+        deallocate (vv)
         RETURN
        ENDIF
        VV(I) = 1.0D0/AAMAX
@@ -711,6 +690,7 @@ c     +I4,').')
        IF(DABS(A(J,J)).LE.TINY) THEN
         WRITE(MESSAGE,1) J
         IFAIL = J
+        deallocate (vv)
         RETURN
        ENDIF
        IF (J.NE.N) THEN
@@ -720,21 +700,14 @@ c     +I4,').')
  18     CONTINUE
        ENDIF
  19   CONTINUE
-      RETURN
-
- 990  WRITE(MESSAGE,3)
-      CALL INTPR(TRIM(MESSAGE(1)),-1,0,0)
-      CALL INTPR(TRIM(MESSAGE(2)),-1,0,0)
-      IFAIL = -1
+      deallocate (vv)
       RETURN
 
  1    FORMAT('****WARNING**** Singular matrix in LUDCMP (row ',I2,')')
  2    FORMAT(5X,'****ERROR**** All numbers in row ',I2,' of matrix ',
      +'passed ',/5X,
      +'to LUDCMP are too small for me to handle. Try rescaling.')
- 3    FORMAT(5X,'****ERROR**** Insufficient local storage in LUDCMP.',
-     +/5X,'Increase NMAX and recompile.')
-      END
+       END
 ******************************************************************************
 ******************************************************************************
 ******************************************************************************

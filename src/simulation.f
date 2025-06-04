@@ -286,7 +286,6 @@
 **************************************************************************
       COMMON /DESCRIBE/ SXPTXT,MOTXT,TRNDTXT,TRPTXT,DYTXT,
      +                  SPATXT,SPPTXT,CORTXT,PWTTXT,GLBTXT
-
 *
 *       Initializing (Fortran90 syntax). NB initialise OFlags to -1, 
 *       so that on the first day ChangeFlags is guaranteed to be set
@@ -1677,54 +1676,4 @@
      +'may need to fit a valid correlation model to',/5X,
      +'get round this problem. Otherwise, check for duplicate sites.')
       END
-c***************************************************************************
-c***************************************************************************
-c***************************************************************************
-c      SUBROUTINE MAKEMO(NSITES)
-c*
-c*     To make monthly time series of areal rainfall totals from GLM
-c*     simulated daily data files
-c*
-c      INTEGER NSITES,NWANT
-c      PARAMETER(NWANT=10)
-c
-c      INTEGER SIM,YEAR,MONTH,DAY,OLDMO,OLDYR,OLDSIM,I
-c      INTEGER SITLST(NWANT)
-c      REAL RAIN(NSITES),RAINMO
-c
-c      DATA(SITLST(I),I=1,NWANT) /5,6,13,15,16,18,19,20,27,33/
-c
-c      OPEN(10,FILE="daily.sim")
-c      OPEN(11,FILE="monthly.sim")
-c
-c      OLDMO = 0
-c*
-c*     The extra 2 entires of RAIN are for 3- and 10-site average
-c*
-c 10   READ(10,'(I3,1X,I4,1X,2(I2,1X),100(F6.2,3X))',END=99)
-c     +                    SIM,YEAR,MONTH,DAY,(RAIN(I),I=1,NSITES)
-c      IF (MONTH.NE.OLDMO) THEN
-c       IF (OLDMO.NE.0) THEN
-c        RAINMO = RAINMO/REAL(NWANT)
-c        WRITE(11,'(I3,1X,I4,1X,I2,1X,F6.2)') 
-c     +                           OLDSIM,OLDYR,OLDMO,RAINMO
-c       ENDIF
-c       IF (SIM.NE.OLDSIM) WRITE(*,'(''Simulation '',I3,''...'')') SIM
-c       RAINMO = 0.0
-c      ENDIF
-c
-c      DO 20 I=1,NWANT
-c       RAINMO = RAINMO + RAIN(SITLST(I))
-c 20   CONTINUE
-c      OLDSIM = SIM
-c      OLDYR = YEAR
-c      OLDMO = MONTH
-c      GOTO 10
-c
-c 99   CLOSE(10)
-c      RAINMO = RAINMO/REAL(NWANT)
-c      WRITE(11,'(I3,1X,I4,1X,I2,1X,F6.2)') 
-c     +                           OLDSIM,OLDYR,OLDMO,RAINMO
-c
-c      END
 
