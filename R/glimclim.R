@@ -3092,7 +3092,7 @@ print.GLC.modeldef <- function(x,scr.width=NULL,global.warn=TRUE,
   tmp.table[,2] <- formatC(tmp.table[,2],format="f",width=11,digits=4)
   tmp.table[,-1][NA.pos] <- ""
   cat("\nThree-way interactions:\n-----------------------\n")  
-  printdata.frame(tmp.table,row.names=FALSE)  
+  print.data.frame(tmp.table,row.names=FALSE)  
  }
 #
 #	If there are *no* nonlinear parameters at all in the model, 
