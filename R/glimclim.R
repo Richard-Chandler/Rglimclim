@@ -3012,7 +3012,7 @@ print.GLC.modeldef <- function(x,scr.width=NULL,global.warn=TRUE,
  }
  tmp.table[,2] <- formatC(tmp.table[,2],format="f",width=11,digits=4)
  cat("Main effects:\n-------------\n")
- print(tmp.table,row.names=TRUE)
+ print.data.frame(tmp.table,row.names=TRUE)
 #
 #       Two-way interactions
 #
@@ -3050,7 +3050,7 @@ print.GLC.modeldef <- function(x,scr.width=NULL,global.warn=TRUE,
   tmp.table[,2] <- formatC(tmp.table[,2],format="f",width=11,digits=4)
   tmp.table[,-1][NA.pos] <- ""
   cat("\nTwo-way interactions:\n---------------------\n")  
-  print(tmp.table,row.names=FALSE)  
+  print.data.frame(tmp.table,row.names=FALSE)  
  }
 #
 #       Three-way interactions
@@ -3092,7 +3092,7 @@ print.GLC.modeldef <- function(x,scr.width=NULL,global.warn=TRUE,
   tmp.table[,2] <- formatC(tmp.table[,2],format="f",width=11,digits=4)
   tmp.table[,-1][NA.pos] <- ""
   cat("\nThree-way interactions:\n-----------------------\n")  
-  print(tmp.table,row.names=FALSE)  
+  printdata.frame(tmp.table,row.names=FALSE)  
  }
 #
 #	If there are *no* nonlinear parameters at all in the model, 
@@ -3380,7 +3380,7 @@ summary.GLC.modeldef <- function(object, tables=c("month","site","year"), ...) {
              "------------------------------------\n",
              "                                      ",
              "Forecast decile\n",sep=""))
-   print(as.data.frame(tmp))
+   print.data.frame(as.data.frame(tmp))
   } else if (x$type == "gamma") {
    cat(paste("\nPearson residuals: mean ",
              format(round(x$Residuals$Pearson$Mean,3),nsmall=3)," (std err ",
