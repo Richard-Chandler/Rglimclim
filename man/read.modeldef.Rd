@@ -6,9 +6,9 @@
 }
 \usage{
 read.modeldef(model.file, nhead = 46, model.type, which.part="mean", siteinfo,
-var.names, which.response=1, 
+var.names, which.response=1, link.to=NULL,
 external.files = c("yr_preds.dat", "mn_preds.dat","dy_preds.dat"), 
-sim = FALSE, oldGlimClim.warning=TRUE)
+sim = FALSE, oldGlimClim.warning=FALSE)
 }
 %- maybe also 'usage' for other objects documented here.
 \arguments{
@@ -27,6 +27,8 @@ sim = FALSE, oldGlimClim.warning=TRUE)
   \item{which.response}{Index number of the response variable (used to 
   identify which element of \code{var.names} corresponds to the response).
   Default is 1.
+  }
+  \item{link.to}{For normal-heteroscedastic models, this can optionally be used to specify the name of an object defining the other half of the model definition (e.g. if you're defining a model for the variance, this will be used to indicate the object containing the definition for the mean model). In this case, site information etc. will be copied over from the other model definition so as to ensure consistency between them.
   }
   \item{external.files}{
         3-element character vector giving names of files containing

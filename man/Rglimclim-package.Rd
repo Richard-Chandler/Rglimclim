@@ -63,7 +63,7 @@ The package is essentially an \R port of the original \code{GLIMCLIM} package (C
 Maintainer: Richard E. Chandler <r.chandler@ucl.ac.uk>
 }
 \references{
-Chandler, R.E. (2020). Multisite, multivariate weather generation based on generalised linear models. \emph{Environmental Modelling and Software} \bold{134}: 104867. \href{https://dx.doi.org/10.1016/j.envsoft.2020.104867}{doi: 10.1016/j.envsoft.2020.104867}.
+Chandler, R.E. (2020). Multisite, multivariate weather generation based on generalised linear models. \emph{Environmental Modelling and Software} \bold{134}: 104867. \doi{10.1016/j.envsoft.2020.104867}.
 
 Chandler, R.E. (2005). On the use of generalized linear models for interpreting climate variability. \emph{Environmetrics} \bold{16(7)}: 699-715.
 
