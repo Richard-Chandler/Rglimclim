@@ -9,5 +9,5 @@ bibentry(bibtype = "article",
          volume = "134",
          pages = "104867",
          year = "2020",
-         doi = "https://doi.org/10.1016/j.envsoft.2020.104867",
-         url = "http://www.homepages.ucl.ac.uk/~ucakarc/work/glimclim.html")
+         doi = "10.1016/j.envsoft.2020.104867",
+         url = "https://github.com/Richard-Chandler/Rglimclim")
