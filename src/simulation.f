@@ -212,7 +212,7 @@
 *       WDSIG11 } Ditto for residual covariance matrix of latent Gaussian
 *       WDSIG22 } variables in WDALLOC
 *       WDSIG12 } 
-*       CVAR    - Covariance matrix of latent Gaussian variables conditioned
+*       WDCVAR  - Covariance matrix of latent Gaussian variables conditioned
 *                 on observed sites, in WDALLOC
 *       SIGMA   - Conditional covariance matrix for DailySim
 *       MOTOT   - Monthly totals at each site
@@ -640,23 +640,24 @@
          IF (IFAIL.NE.0) THEN
           IF (IFAIL.EQ.400) THEN
            WRITE(MESSAGE,'(A14,I8)') 'Error on date ',100*DATE+DD
-           CALL INTPR("",-1,0,0)
-           CALL INTPR("",-1,0,0)
-           CALL INTPR(TRIM(MESSAGE),-1,0,0)
+           CALL LABELPR(" ",1)
+           CALL LABELPR(" ",1)
+           CALL LABELPR(TRIM(MESSAGE),-1)
           ENDIF
           RETURN
          ENDIF
 
          OFlags(1:NSITES) = FLAGS(1:NSITES)
          OWetDry(1:NSITES) = WetDry(1:NSITES)
-
 *
 *     If the models were fitted to *soft thresholded* data, we need to add
 *     the threshold back in to non-zero amounts (unless we're just 
 *     simulating occurrences, for some reason). Hard-thresholded data
 *     are left as simulated. And write the data back to a second 
 *     scratch file
-*
+*         call labelpr("Into COVSET", -1)
+
+         
  554     DO 555 I = 1,NSITES
           IF ((ModToPass.NE.1).AND.(THRTYP.EQ.1)) THEN
            IF (DatArray(I,CurVar,0).GT.0.0D0) 
@@ -1062,7 +1063,7 @@
 *
 *       Reset input file
 *
-      Call FileReset(UnitNos(1))
+      Rewind(UnitNos(1))
       
       Return
       

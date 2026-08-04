@@ -1677,20 +1677,20 @@ read.modeldef <-
     }
    }
 #
-#	Also allow nonlinear parameters to be estimated for trend effects,
-#       and note whether there are any external predictors on an annual
-#       timescale; if so, check that the required input file is present.
-#       The sign() thing is to allow for the fact that the user may 
-#       ask for negatively lagged external predictors (i.e. future
-#       values) - it was ISIGN(COVCODE(N),CODE(2)) in Fortran, which 
-#       transfers the sign of the second argument to the first (with
-#       convention that a + sign is transferred if the second arg is
-#       zero - R transfers a zero in this case, hence the addition of 
-#       1e-6)
+#	  Also allow nonlinear parameters to be estimated for trend effects,
+#   and note whether there are any external predictors on an annual
+#   timescale; if so, check that the required input file is present.
+#   The sign() thing is to allow for the fact that the user may 
+#   ask for negatively lagged external predictors (i.e. future
+#   values) - it was ISIGN(COVCODE(N),CODE(2)) in Fortran, which 
+#   transfers the sign of the second argument to the first (with
+#   convention that a + sign is transferred if the second arg is
+#   zero - R transfers a zero in this case, hence the addition of 
+#   1e-6)
 #
    if (compnt == 2) {
     if (code[1] %in% 4:49) stop(err.msg(model.file,N+3+nhead,19)) 
-    nlstat[N,] <- c(0,0,NA)
+    if (code[1] %in% 1:3) nlstat[N,] <- c(0,0,NA)
     if (code[1] > 50) {
      iext[1] <- 1
      if (!file.OK(external.files[1],"old")) return()
@@ -4341,18 +4341,24 @@ GLCsim <- function(modeldefs,siteinfo,start,end,nsims,impute.until=end,
 #       the use of model$Occurrence in both subsetting commands is
 #       deliberate and *correct*).
 #
-   if (any(model$Occurrence$global.codes[1:model$Occurrence$Np[8]] !=
-           model$Intensity$global.codes[1:model$Occurrence$Np[8]]) ) {
-    stop(paste("Precipitation occurrence and intensity models have",
-               "different definitions of global quantities"))
+   if (!isTRUE(model$Occurrence$Np[8]==model$Intensity$Np[8])) {
+     stop(paste("Precipitation occurrence and intensity models have",
+                "different numbers of global quantities"))
    }
-   tmp <- floor(model$Occurrence$global.codes[1:model$Occurrence$Np[8]] / 1000)
-   tmp <- model$Occurrence$global.vals[tmp] - model$Intensity$global.vals[tmp]
-   if (any(abs(tmp) > 1e-6)) {
-    stop(paste("Precipitation occurrence and intensity models have",
-               "different definitions of global quantities"))
+   if (model$Occurrence$Np[8]>0) {
+     if (any(model$Occurrence$global.codes[1:model$Occurrence$Np[8]] !=
+             model$Intensity$global.codes[1:model$Occurrence$Np[8]]) ) {
+       stop(paste("Precipitation occurrence and intensity models have",
+                  "different definitions of global quantities"))
+     }
+     tmp <- floor(model$Occurrence$global.codes[1:model$Occurrence$Np[8]] / 1000)
+     tmp <- model$Occurrence$global.vals[tmp] - model$Intensity$global.vals[tmp]
+     if (any(abs(tmp) > 1e-6)) {
+       stop(paste("Precipitation occurrence and intensity models have",
+                  "different definitions of global quantities"))
+     }
    }
-#
+   #
 #       And that both models reference the same variable
 #
    if (model$Occurrence$which.response != model$Intensity$which.response) {

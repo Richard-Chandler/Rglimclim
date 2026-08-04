@@ -586,8 +586,9 @@
 *     MISSFL  - Flag to indicate mssing data. Output.
 *     IFAIL   - Error flag. Output.
 ******************************************************************************
-      INTEGER FILNO,TSCALE,PREDNO,DD,MM,YY,LAG,MISSFL,IFAIL
-      DOUBLE PRECISION XVAL
+      INTEGER, intent(in) :: FILNO,TSCALE,PREDNO,DD,MM,YY,LAG
+      INTEGER, intent(out) :: MISSFL, IFAIL
+      DOUBLE PRECISION, intent(out) :: XVAL 
 ******************************************************************************
 *     Additional INTEGERs
 *     ^^^^^^^^^^^^^^^^^^^
@@ -620,7 +621,7 @@
 *     ^^^^^^^^^^^^^^^^^^
 *     TMPARR  - To contain a row of predictors from the input file 
 ******************************************************************************
-      DOUBLE PRECISION, allocatable, save :: TMPARR(:,:)
+      DOUBLE PRECISION, allocatable, save :: TMPARR(:)
 
       DATA (NHEAD(I),I=1,3) /39,40,41/
       DATA (SCLTXT(I),I=1,3) /'annual','monthly','daily'/
@@ -631,10 +632,7 @@
       MISSFL = 0
       IFAIL = 0
 *
-*     Check that temporary storage is adequate
-*
-*
-*     If this is the first time we've read this file, scan through it once
+*     Now: if this is the first time we've read this file, scan through it once
 *     to identify the first and last lines, and check that all the rows 
 *     are present and in the right order. Other checks were performed when 
 *     setting the text for the predictors.
@@ -647,17 +645,26 @@
  50    CONTINUE
        CURLIN(TSCALE) = NHEAD(TSCALE) + 1
        READ(FILNO,*,ERR=98) NPRDEF(TSCALE)
-       if (.not.(allocated(tmparr))) THEN
-         allocate (tmparr(1:nprdef(tscale), 1:3))
-       end if
        DO 60 I=1,NPRDEF(TSCALE)+1
         CURLIN(TSCALE) = CURLIN(TSCALE) + 1
         READ(FILNO,*,ERR=98)
  60    CONTINUE
 *
 *     Scan through the file to (a) set line numbers of first and last
-*     lines (b) check that all rows are present and in the correct order
+*     lines (b) check that all rows are present and in the correct order.
+*     First though, set up temporary storage for reading data. The 
+*     corresponding array is saved, to reduce the number of times the 
+*     input file has to be read. However, if the input file has changed 
+*     (e.g. because the last read was for a different time scale) then 
+*     it must be deallocated and set up again.
 *
+      if ((allocated(tmparr)) .and. 
+     +    (size(tmparr,1).ne.nprdef(tscale))) then
+       deallocate (tmparr)
+      end if
+      if (.not.(allocated(tmparr))) THEN
+       allocate (tmparr(1:nprdef(tscale)))
+      end if
  70    CURLIN(TSCALE) = CURLIN(TSCALE) + 1
        CALL RDXREC(FILNO,TSCALE,FY,FM,FD,NPRDEF(TSCALE),TMPARR,IFAIL)
        IF (IFAIL.EQ.1) GOTO 98
@@ -704,7 +711,7 @@
 *     Or: it's the same line as last time. If so, copy value and scarper.
 *
       ELSEIF (REQLIN(TSCALE).EQ.CURLIN(TSCALE)) THEN
-       XVAL = TMPARR(PREDNO,TSCALE)
+       XVAL = TMPARR(PREDNO)       
        IF (DABS(XVAL+9999.9D0).LT.1.0D-4) MISSFL = 1
        RETURN       
       ENDIF
@@ -743,12 +750,11 @@
 * 
       CURLIN(TSCALE) = REQLIN(TSCALE)
       CALL RDXREC(FILNO,TSCALE,FY,FM,FD,NPRDEF(TSCALE),TMPARR,IFAIL)
-      XVAL = TMPARR(PREDNO,TSCALE)
+      XVAL = TMPARR(PREDNO)
       IF (DABS(XVAL+9999.9D0).LT.1.0D-4) then
        MISSFL = 1
       ENDIF
       RETURN
-
 *
 *     Error trapping
 *
@@ -776,7 +782,7 @@
 ******************************************************************************
       SUBROUTINE RDXREC(FILNO,TSCALE,FY,FM,FD,NPRDEF,XVALS,IFAIL)
 *
-*     Reads a record of an `external' data file. Arguments:
+*     Reads a record of an 'external' data file. Arguments:
 *
 *     FILNO    - Channel number of open file. Input
 *     TSCALE   - 1 for annual, 2 for monthly and 3 for daily data. Input
@@ -784,12 +790,13 @@
 *     FM       - month read from file. Output
 *     FD       - day read from file. Output
 *     NPRDEF   - Number of predictors defined. Input
+*     MXNPR    - Storage allocated for predictors
 *     XVALS    - array of predictors read from file. Output
 *     IFAIL    - error flag. Output
 ******************************************************************************
       INTEGER, intent(in) :: FILNO, TSCALE, NPRDEF
       Integer, intent(out):: FY, FM, FD, IFAIL
-      DOUBLE PRECISION, intent(out) :: XVALS(NPRDEF,3)
+      DOUBLE PRECISION, intent(out) :: XVALS(NPRDEF)
       INTEGER I
   
       FY = 0
@@ -799,13 +806,13 @@
 
       IF (TSCALE.EQ.1) THEN
        READ(FILNO,1,ERR=99,END=98,IOSTAT=IFAIL) 
-     +                         FY,(XVALS(I,TSCALE),I=1,NPRDEF)
+     +                         FY,(XVALS(I),I=1,NPRDEF)
       ELSEIF (TSCALE.EQ.2) THEN
        READ(FILNO,2,ERR=99,END=98,IOSTAT=IFAIL) 
-     +                         FY,FM,(XVALS(I,TSCALE),I=1,NPRDEF)
+     +                         FY,FM,(XVALS(I),I=1,NPRDEF)
       ELSEIF (TSCALE.EQ.3) THEN
        READ(FILNO,3,ERR=99,END=98,IOSTAT=IFAIL) 
-     +                         FY,FM,FD,(XVALS(I,TSCALE),I=1,NPRDEF)
+     +                         FY,FM,FD,(XVALS(I),I=1,NPRDEF)
       ENDIF
       RETURN
 *
@@ -1105,9 +1112,11 @@
 ******************************************************************************
       INTEGER, intent(in) :: DD,MM,SITE,NSITES,NVARS,RespIdx
       INTEGER, intent(in) :: AllowIncAvge,COVCODE,MXP,ICHECK
-      INTEGER IFAIL,PWTIDX(MXP,0:3,NVARS)
-      DOUBLE PRECISION DatArray(NSITES,NVARS,0:10),TRACE,DYPRED(0:3)
-      DOUBLE PRECISION THETA(MXP,3),Distance(3,NSITES,NSITES)
+      INTEGER, intent(in) :: PWTIDX(MXP,0:3,NVARS)
+      INTEGER, intent(out) :: IFAIL
+      DOUBLE PRECISION, intent(in) :: DatArray(NSITES,NVARS,0:10),TRACE,
+     +       THETA(MXP,3), Distance(3,NSITES,NSITES)
+      DOUBLE PRECISION, intent(out) :: DYPRED(0:3)
 ******************************************************************************
 *     Additional INTEGERs
 *     ^^^^^^^^^^^^^^^^^^^
@@ -1191,7 +1200,9 @@
 *       OR if the covariate is a weighted average and the user does not
 *       insist on the value being present at the site of interest 
 *
+
        IF (DatArray(SITE,VARNUM,CODE).LT.-1.0D99) THEN
+        
         IF ( (WTSCHM.EQ.0).OR.(AllowIncAvge.EQ.0).OR.
      +                            (VARNUM.EQ.RespIdx)) THEN
          DYPRED(0) = -1.0D100

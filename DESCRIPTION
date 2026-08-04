@@ -1,9 +1,12 @@
 Package: Rglimclim
-Version: 1.5-0
-Date: 2025-05-29
+Version: 1.5-1
+Date: 2026-08-03
 Title: A Multisite, Multivariate Weather Generator Based on Generalised Linear Models
 Authors@R: person("Richard E.", "Chandler", role=c("aut", "cre"),
              email="r.chandler@ucl.ac.uk")
+Author: Richard E. Chandler [aut, cre]
+Maintainer: Richard E. Chandler <r.chandler@ucl.ac.uk> 
+Depends: R (>= 4.4)
 Description: Modelling and simulation of daily multi-site time series, 
  based on generalised linear models and designed in particular for 
  climatological downscaling applications.

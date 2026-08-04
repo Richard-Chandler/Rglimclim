@@ -249,17 +249,16 @@ C
        ENDIF
       ENDIF
 *
-*		This routine does all sites for 1 day; therefore we only need 
+*	This routine does all sites for 1 day; therefore we only need  
 *       to compute year and month effects, and `external' daily effects, 
-*       once (save on flops). Don't do any parameters that we
-*		don't have to! Values are only set if the year/month changes.
-*       This means that these elements of COVS must NOT be changed 
-*       between calls. First years (trends and `external forcings'
-*       are dealt with differently. NB the need to deal with missing
-*       data when external forcings are involved - effectively, we
-*       just go onto the next year).
+*       once (save on flops). Don't do any parameters that we don't
+*	have to! Values are only set if the year/month changes. This
+*       means that these elements of COVS must NOT be changed between 
+*       calls. First years (trends and `external forcings' are handled
+*       differently. NB the need to deal with missing data when external
+*       forcings are involved - effectively, we just go onto the next
+*       year).
 *
-
       DO 50 J=NP(1)+1,NP(2)
        IF ((RECALC.GT.0).AND.(THETA(J,1).GT.1.0D8)) GOTO 50
        IF ((YEAR.NE.OLDYR).OR.(FORCE.EQ.1)) THEN
@@ -430,6 +429,7 @@ C
      +        (PWTIDX(WTSCHM,2,VARNUM).EQ.0).AND.
      +        (PWTIDX(WTSCHM,3,VARNUM).EQ.0)) GOTO 130
          ENDIF
+         
          CALL DYSET(DAY,MONTH,DatArray,I,NSITES,NVARS,RespIdx,
      +              AllowIncAvge,TRACE,COVCODE(J),THETA,PWTIDX,
      +              Distance,ICHECK,IFAIL,DYPRED,MXP)
