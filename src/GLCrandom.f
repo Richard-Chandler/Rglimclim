@@ -6,7 +6,7 @@
 ********		 (paul@stats.ucl.ac.uk)  	***********
 ********	LAST MODIFIED: 26/8/03			***********
 ********	See file randgen.txt for details	***********
-********        © UCL 2003
+********        Â© UCL 2003
 *******************************************************************
 
       BLOCK DATA ZBQLBD01
@@ -58,16 +58,17 @@ c     +2.63576576D8/
 *	ZBQLIX	Seed array for the random number generator. Defined
 *		in ZBQLBD01
 *	B,C	Used in congruential initialisation of ZBQLIX
-*	INIT	Indicates whether generator has already been initialised
+*defunct	INIT	Indicates whether generator has already been initialised
 *
-      INTEGER SEED,I
-      INTEGER INIT,CURPOS,ID22,ID43
+      INTEGER, intent(in) :: SEED
+c*      INTEGER INIT
+      INTEGER I, CURPOS,ID22,ID43
       DOUBLE PRECISION ZBQLIX(43),B,C,M
       DOUBLE PRECISION TMPVAR1
 
       COMMON /ZBQL0001/ ZBQLIX,B,C,CURPOS,ID22,ID43
       SAVE /ZBQL0001/
-      SAVE INIT
+c*      SAVE INIT
 
 c*
 c*	Ensure we don't call this more than once in a program
@@ -105,7 +106,7 @@ c 100  CONTINUE
 
       END
 ******************************************************************
-      FUNCTION ZBQLU01(DUMMY)
+      FUNCTION ZBQLU01()
 *
 *       Returns a uniform random number between 0 & 1, using
 *       a Marsaglia-Zaman type subtract-with-borrow generator.
@@ -123,7 +124,7 @@ c 100  CONTINUE
 *       the output was identical up to the 16th decimal place
 *       after 10^10 calls, so we're probably OK ...
 *
-      DOUBLE PRECISION ZBQLU01,DUMMY,B,C,ZBQLIX(43),X,B2,BINV
+      DOUBLE PRECISION ZBQLU01,B,C,ZBQLIX(43),X,B2,BINV
       INTEGER CURPOS,ID22,ID43
 
       COMMON /ZBQL0001/ ZBQLIX,B,C,CURPOS,ID22,ID43
@@ -181,7 +182,7 @@ c 100  CONTINUE
 *       Even if A > B, this will work as B-A will then be -ve
 *
       IF (A.NE.B) THEN
-       ZBQLUAB = A + ( (B-A)*ZBQLU01(0.0D0) )
+       ZBQLUAB = A + ( (B-A)*ZBQLU01() )
       ELSE
        ZBQLUAB = A
        WRITE(MESSAGE,1)
@@ -208,7 +209,7 @@ c 100  CONTINUE
        RETURN
       ENDIF
 
-      ZBQLEXP = -DLOG(ZBQLU01(0.0D0))*MU
+      ZBQLEXP = -DLOG(zbqlu01())*MU
 
  1    FORMAT('****ERROR**** Illegal parameter value in ZBQLEXP')
 
@@ -229,8 +230,8 @@ c 100  CONTINUE
       IF (STATUS.EQ.-1) PI = 4.0D0*DATAN(1.0D0)
 
       IF (STATUS.LE.0) THEN
-       THETA = 2.0D0*PI*ZBQLU01(0.0D0)
-       R = DSQRT( -2.0D0*DLOG(ZBQLU01(0.0D0)) )
+       THETA = 2.0D0*PI*zbqlu01()
+       R = DSQRT( -2.0D0*DLOG(zbqlu01()) )
        ZBQLNOR = (R*DCOS(THETA))
        SPARE = (R*DSIN(THETA))
        STATUS = 1
@@ -347,10 +348,10 @@ c 100  CONTINUE
 
       IF (P.GT.0.9D0) THEN
  10    ZBQLGEO = ZBQLGEO + 1 
-       U = ZBQLU01(0.0D0)
+       U = zbqlu01()
        IF (U.GT.P) GOTO 10
       ELSE
-       U = ZBQLU01(0.0D0)
+       U = zbqlu01()
 *
 *	For tiny P, 1-p will be stored inaccurately and log(1-p) may
 *	be zero. In this case approximate log(1-p) by -p
@@ -417,7 +418,7 @@ c 100  CONTINUE
        ENDIF
        Y = DEXP(-MU1)
        X = 1.0D0
- 20    X = X*ZBQLU01(0.0D0)
+ 20    X = X*zbqlu01()
        IF (X.GT.Y) THEN
         ZBQLPOI = ZBQLPOI + 1
         GOTO 20
@@ -430,17 +431,17 @@ c 100  CONTINUE
       ELSE
        TMP1 = DSQRT(2.0D0*MU)
        TMP2 = ZBQLLG(MU+1.0D0)-(MU*DLOG(MU))
- 30    Y = DTAN(PI*ZBQLU01(0.0D0))
+ 30    Y = DTAN(PI*zbqlu01())
        ZBQLPOI = INT(MU + (TMP1*Y))
        IF (ZBQLPOI.LT.0) GOTO 30
        X = DBLE(ZBQLPOI)
        T = (X*DLOG(MU)-ZBQLLG(X+1.0D0)) + TMP2
        IF (DABS(T).LT.1.0D2) THEN
         T = 0.9D0*(1.0D0+(Y*Y))*DEXP(T)
-        IF (ZBQLU01(0.0D0).GT.T) GOTO 30
+        IF (zbqlu01().GT.T) GOTO 30
        ELSE
         T = DLOG(0.9D0*(1.0D0+(Y*Y))) + T
-        IF (DLOG(ZBQLU01(0.0D0)).GT.T) GOTO 30
+        IF (DLOG(zbqlu01()).GT.T) GOTO 30
        ENDIF
       ENDIF 
 
@@ -468,8 +469,8 @@ c 100  CONTINUE
       ENDIF
 
       IF (G.LT.1.0D0) THEN
-889    u=ZBQLU01(0.0d0)
-       v=ZBQLU01(0.0d0)
+889    u=zbqlu01()
+       v=zbqlu01()
        if (u.gt.exp(1.0d0)/(g+exp(1.0d0))) goto 891
        ZBQLGAM=((g+exp(1.0d0))*u/exp(1.0d0))**(1.0d0/g)
        if (v.gt.exp(-ZBQLGAM)) then
@@ -489,8 +490,8 @@ c 100  CONTINUE
        c3=2.0d0/c1
        c4=c3+2.0d0
        c5=1.0d0/sqrt(g)
-777    u=ZBQLU01(0.0d0)
-       v=ZBQLU01(0.0d0)
+777    u=zbqlu01()
+       v=zbqlu01()
        if (g.gt.2.50d0) then
         u=v+c5*(1.0d0-1.860d0*u)
        endif 
@@ -516,8 +517,8 @@ c 100  CONTINUE
       z2 = C+DSQRT(C*C-D)
       B1=(z1*(z1-M)**(R*(G-1.0D0)/(R+1.0D0)))*DEXP(-R*(z1-M)/(R+1.0D0))
       B2=(z2*(z2-M)**(R*(G-1.0D0)/(R+1.0D0)))*DEXP(-R*(z2-M)/(R+1.0D0))
-50    U1=ZBQLU01(0.0D0)
-      U2=ZBQLU01(0.0D0)
+50    U1=zbqlu01()
+      U2=zbqlu01()
       U=A*U1
       V=B1+(B2-B1)*U2
       X=V/(U**R)
@@ -557,8 +558,8 @@ c 100  CONTINUE
 *
       
       IF ( (NU1.LT.0.9D0).AND.(NU2.LT.0.9D0) ) THEN
- 10    X1 = ZBQLU01(0.0D0)
-       X2 = ZBQLU01(0.0D0)
+ 10    X1 = zbqlu01()
+       X2 = zbqlu01()
        IF ( (X1**(1.0D0/NU1))+(X2**(1.0D0/NU2)).GT.1.0D0) GOTO 10    
        X1 = (DLOG(X2)/NU2) - (DLOG(X1)/NU1)
        ZBQLBET1 = (1.0D0 + DEXP(X1))**(-1)
@@ -594,7 +595,7 @@ c 100  CONTINUE
        RETURN
       ENDIF
  
-      U = ZBQLU01(0.0D0)
+      U = zbqlu01()
       ZBQLWEI = B * ( (-DLOG(U))**(1.0D0/A) )
 
  1    FORMAT('****ERROR**** Illegal parameter value in ',
@@ -648,7 +649,7 @@ c 100  CONTINUE
        RETURN
       ENDIF
  
-      U = ZBQLU01(0.0D0)
+      U = zbqlu01()
       ZBQLPAR = B * (U**(-1.0D0/A)-1.0D0)
 
  1    FORMAT('****ERROR**** Illegal parameter value in ZBQLPAR',
